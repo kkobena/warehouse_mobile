@@ -7,6 +7,7 @@ class Constant {
   static const String balance = 'Balance';
   static const String stock = 'Stock';
   static const String recapitulatifCaisse = 'Caisse';
+  static const String inventaire = 'Inventaire';
 
 
 

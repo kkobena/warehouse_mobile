@@ -8,6 +8,7 @@ import 'package:warehouse_mobile/src/ui/auth/authenticate.dart';
 import 'package:warehouse_mobile/src/ui/balance/widgets/balance_page.dart';
 import 'package:flutter/material.dart';
 import 'package:warehouse_mobile/src/ui/home/dashboard_page.dart';
+import 'package:warehouse_mobile/src/ui/inventory/widgets/inventory_page.dart';
 import 'package:warehouse_mobile/src/ui/setting/widgets/setting_page.dart';
 import 'package:warehouse_mobile/src/ui/stock/widgets/stock_page.dart';
 import 'package:provider/provider.dart';
@@ -85,22 +86,83 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  final List<String> _pageTitles = [
+  List<String> _pageTitles = [
     Constant.tableau, // Title for DashboardPage
     Constant.stock, // Title for StockPage
     Constant.balance, // Title for BalancePage
     Constant.recapitulatifCaisse, // Title for SettingPage
   ];
+  List<Widget> _pages = [];
 
+  List<BottomNavigationBarItem> _navBarItems = [];
   int _currentIndex = 0;
-  final List<Widget> _pages = [
-    DashboardPage(),
-    StockPage(),
-    BalancePage(),
-    SettingPage(),
 
-    //  InventoryPage(),
-  ];
+  @override
+  void initState() {
+    super.initState();
+    // You can initialize any data or state here if needed
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // This is a good place to set up role-dependent UI elements
+    // because it's called after initState and when dependencies change (like Provider).
+    _setupRoleBasedUI();
+  }
+
+  void _setupRoleBasedUI() {
+    final authService = Provider.of<AuthService>(
+      context,
+      listen: false,
+    ); // listen: false is okay here
+    final String? role = authService.currentUserRole;
+
+    // Default common pages (can be overridden by role-specific bodies)
+    // For now, let's keep the _pages simple and use a role-specific body.
+    // The BottomNav items could also change per role.
+
+    // Example: Tailor BottomNavigationBar items and pages by role
+    if (role == Constant.profilAdmin) {
+      _pages = [DashboardPage(), StockPage(), BalancePage(), SettingPage()];
+      _navBarItems = const [
+        BottomNavigationBarItem(
+          icon: Icon(Icons.home),
+          label: Constant.tableau,
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.inventory),
+          label: Constant.stock,
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.sell),
+          label: Constant.balance,
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.settings),
+          label: Constant.recapitulatifCaisse,
+        ),
+      ];
+    } else if (role == Constant.profilUser) {
+      _pageTitles = [Constant.inventaire];
+      _pages = [InventoryPage()];
+      _navBarItems = const [
+        BottomNavigationBarItem(
+          icon: Icon(Icons.inventory),
+          label: Constant.stock,
+        ),
+      ];
+    }
+
+    // Ensure _currentIndex is valid if the number of pages changed.
+    if (_currentIndex >= _pages.length) {
+      _currentIndex = 0;
+    }
+    // Trigger a rebuild if called from didChangeDependencies and state actually changed.
+    // No explicit setState needed if this is the first time it's built or
+    // if Provider above triggers a rebuild. If you call this method at other times,
+    // you might need setState(() {});
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -109,10 +171,7 @@ class _MyHomePageState extends State<MyHomePage> {
           AuthService
         >(); // Use listen:false if only for one-time check or actions
     if (!authService.isAuthenticated) {
-      // This block will execute after logout() and notifyListeners()
-      // The `context` here is the fresh context of HomeContainerPage
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        // The `mounted` check here refers to the State of HomeContainerPage
         if (mounted) {
           Navigator.of(
             context,
@@ -120,9 +179,30 @@ class _MyHomePageState extends State<MyHomePage> {
           ).pushNamedAndRemoveUntil(Authenticate.routeName, (route) => false);
         }
       });
-      // Return a loading indicator while the navigation takes place after the frame
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+
+      return const PopScope(
+        canPop: false,
+        onPopInvokedWithResult: null,
+        child: Scaffold(body: Center(child: CircularProgressIndicator())),
+      );
     }
+
+    if (_pages.isEmpty && authService.currentUser != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          setState(() {
+            _setupRoleBasedUI(); // Try to set up again
+          });
+        }
+      });
+      if (_pages.isEmpty) {
+        // If still empty after attempting setup
+        return const Scaffold(
+          body: Center(child: Text("Loading home configuration...")),
+        );
+      }
+    }
+    final String? role = authService.currentUserRole;
     return PopScope(
       canPop: authService.isAuthenticated,
       onPopInvokedWithResult: (bool didPop, void result) {
@@ -132,72 +212,79 @@ class _MyHomePageState extends State<MyHomePage> {
       },
       child: Scaffold(
         key: _scaffoldKey,
-        bottomNavigationBar: BottomNavigationBar(
-          currentIndex: _currentIndex,
-          onTap: (newIndex) {
-            setState(() {
-              _currentIndex = newIndex;
-              print('Index: $_currentIndex ');
-            });
-          },
-          //  unselectedIconTheme: IconThemeData(color: Colors.grey),
-          unselectedIconTheme: IconThemeData(color: Colors.grey[600]),
-          //   selectedItemColor: Colors.green[700],
-          selectedItemColor: Theme.of(context).colorScheme.primary,
-          backgroundColor: Theme.of(context).colorScheme.surface,
-          //  type: BottomNavigationBarType.shifting,
-          items: const [
-            BottomNavigationBarItem(
-              icon: Icon(Icons.home),
-              label: Constant.tableau,
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.inventory),
-              label: Constant.stock,
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.sell),
-              label: Constant.balance,
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.settings),
-              label: Constant.recapitulatifCaisse,
-            ),
-          ],
-        ),
+        bottomNavigationBar: _navBarItems.isNotEmpty && _navBarItems.length > 1
+            ? BottomNavigationBar(
+                currentIndex: _currentIndex,
+                onTap: (newIndex) {
+                  setState(() {
+                    _currentIndex = newIndex;
+                    print('Index: $_currentIndex ');
+                  });
+                },
+                //  unselectedIconTheme: IconThemeData(color: Colors.grey),
+                unselectedIconTheme: IconThemeData(color: Colors.grey[600]),
+                //   selectedItemColor: Colors.green[700],
+                selectedItemColor: Theme.of(context).colorScheme.primary,
+                backgroundColor: Theme.of(context).colorScheme.surface,
+                //  type: BottomNavigationBarType.shifting,
+                items: _navBarItems,
+              )
+            : null,
         appBar: AppBar(
-          title: Text(_pageTitles[_currentIndex]),
-          leading: IconButton(
-            icon: Icon(Icons.menu),
-            tooltip: 'Ouvrir le menu',
-            onPressed: () {
-              _scaffoldKey.currentState?.openDrawer(); // Open the drawer
-            },
-          ),
-          actions: [
-            IconButton(
-              icon: Icon(Icons.notifications),
-              onPressed: () {
-                // Action pour les notifications
-              },
-            ),
-            IconButton(
-              icon: Icon(Icons.logout),
-              onPressed: () async {
-                final navigator = Navigator.of(context);
-                if (navigator.canPop()) {
-                  navigator.pop();
-                }
+          title: _pages.isNotEmpty && _pages.length > 1
+              ? Text(_pageTitles[_currentIndex])
+              : Text(_pageTitles[0]),
+          leading: role == Constant.profilAdmin
+              ? IconButton(
+                  icon: Icon(Icons.menu),
+                  tooltip: 'Ouvrir le menu',
+                  onPressed: () {
+                    _scaffoldKey.currentState?.openDrawer(); // Open the drawer
+                  },
+                )
+              : null,
+          actions: role == Constant.profilAdmin
+              ? [
+                  IconButton(
+                    icon: Icon(Icons.notifications),
+                    onPressed: () {
+                      // Action pour les notifications
+                    },
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.logout),
+                    onPressed: () async {
+                      final navigator = Navigator.of(context);
+                      if (navigator.canPop()) {
+                        navigator.pop();
+                      }
 
-                await authService.logout();
-              },
-            ),
-          ],
+                      await authService.logout();
+                    },
+                  ),
+                ]
+              : [
+                  IconButton(
+                    icon: Icon(Icons.logout),
+                    onPressed: () async {
+                      final navigator = Navigator.of(context);
+                      if (navigator.canPop()) {
+                        navigator.pop();
+                      }
+
+                      await authService.logout();
+                    },
+                  ),
+                ],
         ),
         body: IndexedStack(
           // Using IndexedStack to preserve state of pages
           index: _currentIndex,
-          children: _pages,
+          children: _pages.isNotEmpty
+              ? _pages
+              : [const Center(child: Text("Loading..."))],
+
+          //  children: _pages,
         ),
         drawer: AppDrawer(),
       ),
