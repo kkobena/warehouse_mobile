@@ -4,6 +4,7 @@ import 'package:warehouse_mobile/src/data/auth/model/user.dart';
 import 'package:warehouse_mobile/src/data/auth/servie/auth_service.dart';
 import 'package:warehouse_mobile/src/data/services/utils/api_client.dart';
 import 'package:warehouse_mobile/src/ui/auth/authenticate.dart';
+import 'package:warehouse_mobile/src/utils/theme_profiver.dart';
 
 
 class AppDrawer extends StatelessWidget {
@@ -15,6 +16,7 @@ class AppDrawer extends StatelessWidget {
     final ThemeData theme = Theme.of(context);
     final authService = context.watch<AuthService>();
 
+    final themeProvider=Provider.of<ThemeProfiver>(context);
     final apiClient = ApiClient();
    // final User? currentUser = apiClient.user;
     final User? currentUser = authService.currentUser;
@@ -31,6 +33,9 @@ class AppDrawer extends StatelessWidget {
 
    // final IconData headerIcon = Icons.add_circle_outline_rounded;
     final IconData headerIcon =  Icons.add_circle_outline_rounded; // Example dynamic icon
+    final String themeSwitchLabel = themeProvider.currentThemeKey == AppThemes.bleu
+        ? 'Mode Sombre (Bleu)'
+        : 'Mode Clair (Vert)';
 
 
     return Drawer(
@@ -60,6 +65,25 @@ class AppDrawer extends StatelessWidget {
               ],
             ),
           ),
+          SwitchListTile(
+            title: Text(
+              themeSwitchLabel, // Dynamic label
+              style: TextStyle(color: drawerTextColor),
+            ),
+            value: themeProvider.currentThemeKey == AppThemes.bleu, // Switch is "on" if current theme is Bleu
+            onChanged: (bool value) {
+              // If value is true, switch to Bleu (dark/alternative), otherwise switch to Vert (light/default)
+              themeProvider.setTheme(value ? AppThemes.bleu : AppThemes.vert);
+              // Or, if you added the toggleTheme method:
+            // themeProvider.toggleTheme();
+            },
+            secondary: Icon(
+              themeProvider.currentThemeKey == AppThemes.bleu ? Icons.dark_mode_outlined : Icons.light_mode_outlined,
+              color: drawerIconColor,
+            ),
+            activeColor: theme.colorScheme.primary, // Color of the switch when it's ON
+          ),
+          const Divider(),
           ListTile(
             leading: Icon(Icons.info_outline, color: drawerIconColor),
             title: Text('À Propos', style: TextStyle(color: drawerTextColor)),

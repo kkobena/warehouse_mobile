@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-
 import 'package:hive/hive.dart';
 
 import 'package:warehouse_mobile/src/data/auth/model/user.dart';
@@ -15,12 +14,12 @@ class ApiClient {
     return _instance;
   }
 
-
   final Box _box = Hive.box('settings');
 
   Future<void> saveApiUrl(String apiUrl) async {
     await _box.put('apiUrl', 'http://$apiUrl/java-client');
     await _box.put('auth', 'http://$apiUrl/api-user-account');
+    await _box.put('appIp', apiUrl);
   }
 
   Future<void> saveCredentials(
@@ -41,14 +40,21 @@ class ApiClient {
   }
 
   String? get apiUrl => _box.get('apiUrl');
+
   String? get authUrl => _box.get('auth');
+
+  String? get appIp => _box.get('appIp');
 
   String? get _username => _box.get('username');
 
   String? get _password => _box.get('password');
+
   String? get username => _username;
+
   String? get password => _password;
+
   bool get rememberMe => _box.get('rememberMe', defaultValue: false);
+
   User? get user {
     final userJson = _box.get('user');
     if (userJson != null) {
@@ -56,8 +62,6 @@ class ApiClient {
     }
     return null;
   }
-
-
 
   String get basicAuth {
     final username = _username ?? '';

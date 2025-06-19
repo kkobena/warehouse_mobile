@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:warehouse_mobile/src/data/auth/model/user.dart';
@@ -21,12 +22,104 @@ class AuthService extends ChangeNotifier {
 
   String? get currentUserRole => _currentUser?.roleName;
 
-  Future<void> login(String usernameOrEmail, String password) async {
+  Future<void> login(String usernameOrEmail, String password,String? apiurl) async {
     _isLoading = true;
     _errorMessage = '';
     notifyListeners();
 
     try {
+      if (apiurl != null) {
+        await ApiClient().saveApiUrl(apiurl);
+      }
+      final Uri loginUri = Uri.parse('${ApiClient().authUrl}'); // Ensure ApiClient().authUrl is correctly set
+
+      final response = await http.post(
+        loginUri,
+        headers: {'Content-Type': 'application/json; charset=UTF-8'},
+        body: jsonEncode(<String, String>{
+          'username': usernameOrEmail,
+          'password': password,
+        }),
+      ).timeout(const Duration(seconds: 15),
+          onTimeout: () {
+
+            throw SocketException(
+                "La connexion au serveur a expiré. Veuillez vérifier votre connexion internet et réessayer.");
+          });
+
+      if (response.statusCode == 200) {
+        final responseData = json.decode(response.body);
+        _currentUser = User.fromJson(responseData);
+
+        if (_currentUser != null) {
+          if (checkUserRole()) {
+            await ApiClient().saveUser(
+              _currentUser!,
+              password,
+              true,
+            );
+            _isAuthenticated = true;
+            _errorMessage = ''; // Clear previous errors
+          } else {
+            _isAuthenticated = false;
+            _errorMessage = 'L\'utilisateur n\'a pas de rôle défini.';
+          }
+        } else {
+          _isAuthenticated = false;
+          _errorMessage = 'Échec de la connexion. Utilisateur introuvable .';
+        }
+      } else {
+
+        _isAuthenticated = false;
+        try {
+          final errorData = json.decode(response.body);
+          _errorMessage = errorData['message'] ?? 'Échec de la connexion';
+        } catch (e) {
+          _errorMessage = 'Échec de la connexion';
+        }
+      }
+    } on SocketException catch (e) {
+      // Specifically catch network/socket related errors
+      _isAuthenticated = false;
+      _errorMessage = 'Impossible de se connecter au serveur. Veuillez vérifier votre connexion internet et réessayer.';
+
+    } on http.ClientException catch (e) {
+
+      _isAuthenticated = false;
+      _errorMessage = 'Erreur de connexion au serveur: Veuillez vérifier votre connexion et l\'URL du serveur.';
+
+    } catch (e) {
+
+      _isAuthenticated = false;
+      _errorMessage = 'Une erreur inattendue s\'est produite';
+
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+
+
+
+
+
+
+
+  Future<void> login__(
+      String usernameOrEmail,
+      String password,
+      String? apiurl,
+      ) async {
+    _isLoading = true;
+    _errorMessage = '';
+    notifyListeners();
+
+    try {
+      if (apiurl != null) {
+        await ApiClient().saveApiUrl(apiurl);
+      }
+
       final Uri loginUri = Uri.parse('${ApiClient().authUrl}');
 
       final response = await http.post(
@@ -59,13 +152,13 @@ class AuthService extends ChangeNotifier {
             _isLoading = false;
             _isAuthenticated = false;
           }
-          notifyListeners();
+
         } else {
           _errorMessage =
-              'Echec de la connexion. L\'utilisateur est introuvable.';
+          'Echec de la connexion. L\'utilisateur est introuvable.';
           _isLoading = false;
           _isAuthenticated = false;
-          notifyListeners();
+
         }
       } else {
         // Attempt to parse error message from response
@@ -73,20 +166,23 @@ class AuthService extends ChangeNotifier {
           final errorData = json.decode(response.body);
           _errorMessage =
               errorData['message'] ??
-              'Échec de la connexion. Code: ${response.statusCode}';
+                  'Échec de la connexion. Code: ${response.statusCode}';
         } catch (e) {
           _errorMessage =
-              'Échec de la connexion. Code: ${response.statusCode}. Réponse invalide.';
+          'Échec de la connexion. Code: ${response.statusCode}. Réponse invalide.';
         }
         _isLoading = false;
         _isAuthenticated = false;
-        notifyListeners();
+
       }
     } catch (e) {
-      print('Login error: $e');
+
       _errorMessage = 'Une erreur s\'est produite: ${e.toString()}';
       _isLoading = false;
       _isAuthenticated = false;
+
+    }finally{
+      _isLoading = false;
       notifyListeners();
     }
   }
@@ -105,11 +201,6 @@ class AuthService extends ChangeNotifier {
   }
 
   Future<void> autoLogin() async {
-
-      await login(
-        ApiClient().username ?? '',
-        ApiClient().password ?? '',
-      );
-
+    await login(ApiClient().username ?? '', ApiClient().password ?? '', null);
   }
 }

@@ -1,7 +1,7 @@
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:warehouse_mobile/src/data/services/dahboard/dashboard_sale_service.dart';
-import 'package:warehouse_mobile/src/data/services/dahboard/model/dashboard.dart';
+import 'package:warehouse_mobile/src/models/dashboard.dart';
 import 'package:warehouse_mobile/src/models/pair_model.dart';
 import 'package:flutter/material.dart';
 

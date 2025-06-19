@@ -13,30 +13,27 @@ import 'package:warehouse_mobile/src/ui/setting/widgets/setting_page.dart';
 import 'package:warehouse_mobile/src/ui/stock/widgets/stock_page.dart';
 import 'package:provider/provider.dart';
 import 'package:warehouse_mobile/src/utils/app_drawer.dart';
-import 'package:warehouse_mobile/src/utils/app_theme.dart';
 import 'package:warehouse_mobile/src/utils/constant.dart';
 import 'package:warehouse_mobile/src/utils/profile_page_router.dart';
+import 'package:warehouse_mobile/src/utils/theme_profiver.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Hive.initFlutter();
   await Hive.openBox('settings');
   await initializeDateFormatting('fr_FR', null);
-  //TODO: faire un servie d'authentification pour recupérer l'url de l'api et les credentials et les stocker dans un box
-  ApiClient().saveApiUrl('192.168.1.51:9080');
 
-  //  ApiClient().saveCredentials("admin", "admin", true);
   final authService = AuthService();
   if (!authService.isAuthenticated && ApiClient().rememberMe) {
     await authService.autoLogin();
   }
-  // If not authenticated, clear any previous user data
 
   runApp(
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => authService),
         ChangeNotifierProvider(create: (_) => DashboardSaleService()),
+        ChangeNotifierProvider(create: (_) => ThemeProfiver()),
         // Add other providers here if needed
       ],
       child: MyApp(),
@@ -50,9 +47,10 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProfiver>(context);
     return MaterialApp(
       title: Constant.appName,
-      theme: AppTheme.themeBleu,
+      theme:themeProvider.currentTheme ,
       locale: const Locale('fr'),
       supportedLocales: const [
         Locale('fr', ''), // French, no country code
@@ -198,7 +196,7 @@ class _MyHomePageState extends State<MyHomePage> {
       if (_pages.isEmpty) {
         // If still empty after attempting setup
         return const Scaffold(
-          body: Center(child: Text("Loading home configuration...")),
+          body: Center(child: Text("Chargement de la configuration...")),
         );
       }
     }
