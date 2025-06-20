@@ -2,7 +2,9 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:hive_flutter/adapters.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:warehouse_mobile/src/data/auth/servie/auth_service.dart';
+import 'package:warehouse_mobile/src/data/services/balance/balance_service.dart';
 import 'package:warehouse_mobile/src/data/services/dahboard/dashboard_sale_service.dart';
+import 'package:warehouse_mobile/src/data/services/tva/tva_service.dart';
 import 'package:warehouse_mobile/src/data/services/utils/api_client.dart';
 import 'package:warehouse_mobile/src/ui/auth/authenticate.dart';
 import 'package:warehouse_mobile/src/ui/balance/widgets/balance_page.dart';
@@ -12,6 +14,7 @@ import 'package:warehouse_mobile/src/ui/inventory/widgets/inventory_page.dart';
 import 'package:warehouse_mobile/src/ui/setting/widgets/setting_page.dart';
 import 'package:warehouse_mobile/src/ui/stock/widgets/stock_page.dart';
 import 'package:provider/provider.dart';
+import 'package:warehouse_mobile/src/ui/tvas/widgets/tva_page.dart';
 import 'package:warehouse_mobile/src/utils/app_drawer.dart';
 import 'package:warehouse_mobile/src/utils/constant.dart';
 import 'package:warehouse_mobile/src/utils/profile_page_router.dart';
@@ -34,6 +37,8 @@ void main() async {
         ChangeNotifierProvider(create: (_) => authService),
         ChangeNotifierProvider(create: (_) => DashboardSaleService()),
         ChangeNotifierProvider(create: (_) => ThemeProfiver()),
+        ChangeNotifierProvider(create: (_) => BalanceService()),
+        ChangeNotifierProvider(create: (_) => TvaService()),
         // Add other providers here if needed
       ],
       child: MyApp(),
@@ -122,7 +127,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
     // Example: Tailor BottomNavigationBar items and pages by role
     if (role == Constant.profilAdmin) {
-      _pages = [DashboardPage(), StockPage(), BalancePage(), SettingPage()];
+      _pages = [DashboardPage(), StockPage(), BalancePage(), TvaPage()];
       _navBarItems = const [
         BottomNavigationBarItem(
           icon: Icon(Icons.home),

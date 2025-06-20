@@ -1,11 +1,9 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'package:warehouse_mobile/src/models/dashboard.dart';
-import 'package:warehouse_mobile/src/data/services/utils/api_client.dart';
+import 'package:warehouse_mobile/src/utils/service/shared_service.dart';
 
 class DashboardSaleService extends ChangeNotifier {
+  final SharedService _sharedService;
   Dashboard? _dashboard;
   bool _isLoading = false;
   String _errorMessage = '';
@@ -16,61 +14,29 @@ class DashboardSaleService extends ChangeNotifier {
 
   String get errorMessage => _errorMessage;
 
+  DashboardSaleService() : _sharedService = SharedService();
 
-  Future<void> fetchDashboard(String? fromDate) async {
-    _isLoading = true;
-    _errorMessage = '';
-    notifyListeners();
+  Future<void> fetchDashboard(String fromDate) async {
+    final Map<String, String> queryParameters = {};
+    if (fromDate.isNotEmpty) {
+      queryParameters['fromDate'] = fromDate;
+    }
 
-    try {
-      final apiClient = ApiClient();
-      final String apiUrl = '${apiClient.apiUrl}/mobile/dashboard/data';
-      final Map<String, String> queryParameters = {};
-      if (fromDate != null && fromDate.isNotEmpty) {
-        queryParameters['fromDate'] = fromDate;
-      }
+    // Use the SharedService to fetch data
+    final Dashboard? result = await _sharedService.fetchData<Dashboard>(
+      endpoint: '/mobile/dashboard/data',
+      // Endpoint path
+      queryParameters: queryParameters,
+      parserFromJson: (jsonData) => Dashboard.fromJson(jsonData),
+      // Your specific parser
+      setLoading: (loading) => _isLoading = loading,
+      setError: (error) => _errorMessage = error,
+      notifyListenersCallback: notifyListeners,
 
-      final uri = Uri.parse(apiUrl).replace(queryParameters: queryParameters);
+    );
 
-      final response = await http.get(
-        uri,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': apiClient.basicAuth,
-
-        },
-      ).timeout(const Duration(seconds: 15));
-
-      if (response.statusCode == 200) {
-        if (response.body.isEmpty || response.body.toLowerCase() == 'null') {
-          _dashboard = null;
-          _errorMessage = 'Aucun résultat trouvé.';
-        } else {
-
-          try {
-            _dashboard = Dashboard.fromJson(json.decode(response.body));
-            _errorMessage = ''; // Clear error on success
-          } catch (e) {
-            _dashboard = null;
-            _errorMessage = 'Erreur lors de l\'analyse des données reçues.';
-
-          }
-        }
-      } else {
-
-        _dashboard = null;
-        if (response.statusCode == 401 || response.statusCode == 403) {
-          _errorMessage = 'Non autorisé. Veuillez vérifier vos identifiants.';
-        } else if (response.statusCode >= 500) {
-          _errorMessage = 'Erreur du serveur (Code: ${response.statusCode}). Veuillez réessayer plus tard.';
-        } else {
-          _errorMessage = 'Erreur lors du chargement des données (Code: ${response.statusCode}).';
-        }
-
-      }
-    }  finally {
-      _isLoading = false;
-      notifyListeners();
+    if (result != null) {
+      _dashboard = result;
     }
   }
 }

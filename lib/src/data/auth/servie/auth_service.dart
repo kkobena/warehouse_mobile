@@ -40,7 +40,7 @@ class AuthService extends ChangeNotifier {
           'username': usernameOrEmail,
           'password': password,
         }),
-      ).timeout(const Duration(seconds: 15),
+      ).timeout(const Duration(seconds: 10),
           onTimeout: () {
 
             throw SocketException(

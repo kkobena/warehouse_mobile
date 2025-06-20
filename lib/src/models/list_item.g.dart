@@ -9,7 +9,7 @@ part of 'list_item.dart';
 ListItem _$ListItemFromJson(Map<String, dynamic> json) => ListItem(
   libelle: json['libelle'] as String,
   value: json['value'] as String,
-  autre: json['autre'] as String,
+  autre: json['autre'] as String?,
 );
 
 Map<String, dynamic> _$ListItemToJson(ListItem instance) => <String, dynamic>{

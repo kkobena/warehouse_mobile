@@ -6,7 +6,6 @@ import 'package:warehouse_mobile/src/data/services/utils/api_client.dart';
 import 'package:warehouse_mobile/src/ui/auth/authenticate.dart';
 import 'package:warehouse_mobile/src/utils/theme_profiver.dart';
 
-
 class AppDrawer extends StatelessWidget {
   const AppDrawer({super.key});
 
@@ -15,12 +14,8 @@ class AppDrawer extends StatelessWidget {
     // Access theme data and auth service
     final ThemeData theme = Theme.of(context);
     final authService = context.watch<AuthService>();
-
-    final themeProvider=Provider.of<ThemeProfiver>(context);
-    final apiClient = ApiClient();
-   // final User? currentUser = apiClient.user;
+    final themeProvider = Provider.of<ThemeProfiver>(context);
     final User? currentUser = authService.currentUser;
-    // Define colors from theme for consistency (could also be passed as parameters if needed)
     final Color drawerHeaderColor = theme.colorScheme.primary;
     final Color drawerHeaderTextColor = theme.colorScheme.onPrimary;
     final Color drawerIconColor = theme.colorScheme.onSurface.withValues(
@@ -28,15 +23,11 @@ class AppDrawer extends StatelessWidget {
     );
     final Color drawerTextColor = theme.colorScheme.onSurface;
 
-    final String username =
-        currentUser?.abbrName ?? 'Menu';
-
-   // final IconData headerIcon = Icons.add_circle_outline_rounded;
-    final IconData headerIcon =  Icons.add_circle_outline_rounded; // Example dynamic icon
-    final String themeSwitchLabel = themeProvider.currentThemeKey == AppThemes.bleu
-        ? 'Mode Sombre (Bleu)'
-        : 'Mode Clair (Vert)';
-
+    final String username = currentUser?.abbrName ?? 'Menu';
+    final IconData headerIcon =
+        Icons.add_circle_outline_rounded; // Example dynamic icon
+    final String themeSwitchLabel =
+        themeProvider.currentThemeKey == AppThemes.bleu ? 'Bleu' : 'Vert';
 
     return Drawer(
       child: ListView(
@@ -60,8 +51,6 @@ class AppDrawer extends StatelessWidget {
                   ),
                   overflow: TextOverflow.ellipsis, // Handle long names
                 ),
-
-
               ],
             ),
           ),
@@ -70,18 +59,21 @@ class AppDrawer extends StatelessWidget {
               themeSwitchLabel, // Dynamic label
               style: TextStyle(color: drawerTextColor),
             ),
-            value: themeProvider.currentThemeKey == AppThemes.bleu, // Switch is "on" if current theme is Bleu
-            onChanged: (bool value) {
-              // If value is true, switch to Bleu (dark/alternative), otherwise switch to Vert (light/default)
-              themeProvider.setTheme(value ? AppThemes.bleu : AppThemes.vert);
-              // Or, if you added the toggleTheme method:
-            // themeProvider.toggleTheme();
+            value: themeProvider.currentThemeKey == AppThemes.bleu,
+            // Switch is "on" if current theme is Bleu
+            onChanged: (bool value) async {
+              await themeProvider.setTheme(
+                value ? AppThemes.bleu : AppThemes.vert,
+              );
             },
             secondary: Icon(
-              themeProvider.currentThemeKey == AppThemes.bleu ? Icons.dark_mode_outlined : Icons.light_mode_outlined,
+              themeProvider.currentThemeKey == AppThemes.bleu
+                  ? Icons.dark_mode_outlined
+                  : Icons.light_mode_outlined,
               color: drawerIconColor,
             ),
-            activeColor: theme.colorScheme.primary, // Color of the switch when it's ON
+            activeColor:
+                theme.colorScheme.primary, // Color of the switch when it's ON
           ),
           const Divider(),
           ListTile(
@@ -116,23 +108,20 @@ class AppDrawer extends StatelessWidget {
 
           const Divider(), // Use theme's divider color by default, or customize
 
-            ListTile(
-              leading: Icon(Icons.logout, color: drawerIconColor),
-              title: Text(
-                'Déconnexion',
-                style: TextStyle(color: drawerTextColor),
-              ),
-              onTap: () async {
-                final navigator = Navigator.of(context);
-                if (navigator.canPop()) {
-                  navigator.pop();
-                }
-                await authService.logout();
-
-
-              },
-            )
-
+          ListTile(
+            leading: Icon(Icons.logout, color: drawerIconColor),
+            title: Text(
+              'Déconnexion',
+              style: TextStyle(color: drawerTextColor),
+            ),
+            onTap: () async {
+              final navigator = Navigator.of(context);
+              if (navigator.canPop()) {
+                navigator.pop();
+              }
+              await authService.logout();
+            },
+          ),
         ],
       ),
     );

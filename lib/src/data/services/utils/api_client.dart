@@ -3,11 +3,11 @@ import 'dart:convert';
 import 'package:hive/hive.dart';
 
 import 'package:warehouse_mobile/src/data/auth/model/user.dart';
+import 'package:warehouse_mobile/src/utils/theme_profiver.dart';
 
 class ApiClient {
   static final ApiClient _instance = ApiClient._internal();
 
-  // http://192.168.1.51:9080/java-client
   ApiClient._internal();
 
   factory ApiClient() {
@@ -55,6 +55,8 @@ class ApiClient {
 
   bool get rememberMe => _box.get('rememberMe', defaultValue: false);
 
+  AppThemes get theme => fromString(_box.get('theme', defaultValue: 'bleu'));
+
   User? get user {
     final userJson = _box.get('user');
     if (userJson != null) {
@@ -74,5 +76,18 @@ class ApiClient {
     await _box.delete('password');
     await _box.delete('rememberMe');
     await _box.delete('user');
+  }
+
+  Future<void> updateTheme(AppThemes th) async {
+    print(th.name+'***********************');
+    await _box.put('theme', th.name);
+  }
+
+  AppThemes fromString(String value) {
+    print(value+'***********************');
+    return AppThemes.values.firstWhere(
+      (e) => e.name.toLowerCase() == value.toLowerCase(),
+      orElse: () => AppThemes.bleu, // or return null if nullable
+    );
   }
 }

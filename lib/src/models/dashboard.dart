@@ -1,12 +1,16 @@
-import 'package:warehouse_mobile/src/models/pair_model.dart';
+import 'package:json_annotation/json_annotation.dart';
+import 'package:warehouse_mobile/src/models/list_item.dart';
 
+part 'dashboard.g.dart';
+
+@JsonSerializable()
 class Dashboard {
-  List<PairModel>? sales;
-  List<PairModel>? netAmounts;
-  List<PairModel>? salesTypes;
-  List<PairModel>? counts;
-  List<PairModel>? paymentModes;
-  List<PairModel>? commandes;
+  List<ListItem>? sales;
+  List<ListItem>? netAmounts;
+  List<ListItem>? salesTypes;
+  List<ListItem>? counts;
+  List<ListItem>? paymentModes;
+  List<ListItem>? commandes;
 
   Dashboard({
     this.sales,
@@ -17,35 +21,8 @@ class Dashboard {
     this.commandes,
   });
 
-  factory Dashboard.fromJson(Map<String, dynamic> json) {
-    return Dashboard(
-      sales: (json['sales'] as List<dynamic>?)
-          ?.map((e) => PairModel.fromJson(e as Map<String, dynamic>))
-          .toList(),
-      netAmounts: (json['netAmounts'] as List<dynamic>?)
-          ?.map((e) => PairModel.fromJson(e as Map<String, dynamic>))
-          .toList(),
-      salesTypes: (json['salesTypes'] as List<dynamic>?)
-          ?.map((e) => PairModel.fromJson(e as Map<String, dynamic>))
-          .toList(),
-      counts: (json['counts'] as List<dynamic>?)
-          ?.map((e) => PairModel.fromJson(e as Map<String, dynamic>))
-          .toList(),
-      paymentModes: (json['paymentModes'] as List<dynamic>?)
-          ?.map((e) => PairModel.fromJson(e as Map<String, dynamic>))
-          .toList(),
-      commandes: (json['commandes'] as List<dynamic>?)
-          ?.map((e) => PairModel.fromJson(e as Map<String, dynamic>))
-          .toList(),
-    );
-  }
+  factory Dashboard.fromJson(Map<String, dynamic> json) => _$DashboardFromJson(json);
 
-  Map<String, dynamic> toJson() => {
-    'sales': sales?.map((e) => e.toJson()).toList(),
-    'netAmounts': netAmounts?.map((e) => e.toJson()).toList(),
-    'salesTypes': salesTypes?.map((e) => e.toJson()).toList(),
-    'counts': counts?.map((e) => e.toJson()).toList(),
-    'paymentModes': paymentModes?.map((e) => e.toJson()).toList(),
-    'commandes': commandes?.map((e) => e.toJson()).toList(),
-  };
+  // Method for serialization
+  Map<String, dynamic> toJson() => _$DashboardToJson(this);
 }
