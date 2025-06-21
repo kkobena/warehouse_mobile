@@ -12,7 +12,7 @@ import 'package:warehouse_mobile/src/utils/service_state_wrapper.dart';
 
 class TvaPage extends StatefulWidget {
   const TvaPage({Key? key});
-
+  static const String routeName = '/tva';
   @override
   State<TvaPage> createState() => _TvaPageState();
 }
@@ -313,7 +313,7 @@ class _TvaPageState extends State<TvaPage> {
       height: 1,
       color: Theme.of(context).dividerColor.withValues(alpha: 0.5),
     ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 12),
               AspectRatio(
                 aspectRatio: 1.0, // Adjust aspect ratio as needed
                 child: PieChart( // The PieChart widget itself

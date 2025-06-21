@@ -40,7 +40,7 @@ class AuthService extends ChangeNotifier {
           'username': usernameOrEmail,
           'password': password,
         }),
-      ).timeout(const Duration(seconds: 10),
+      ).timeout(const Duration(seconds: 5),
           onTimeout: () {
 
             throw SocketException(
@@ -78,12 +78,11 @@ class AuthService extends ChangeNotifier {
           _errorMessage = 'Échec de la connexion';
         }
       }
-    } on SocketException catch (e) {
-      // Specifically catch network/socket related errors
+    } on SocketException {
       _isAuthenticated = false;
       _errorMessage = 'Impossible de se connecter au serveur. Veuillez vérifier votre connexion internet et réessayer.';
 
-    } on http.ClientException catch (e) {
+    } on http.ClientException {
 
       _isAuthenticated = false;
       _errorMessage = 'Erreur de connexion au serveur: Veuillez vérifier votre connexion et l\'URL du serveur.';
@@ -99,93 +98,6 @@ class AuthService extends ChangeNotifier {
     }
   }
 
-
-
-
-
-
-
-
-  Future<void> login__(
-      String usernameOrEmail,
-      String password,
-      String? apiurl,
-      ) async {
-    _isLoading = true;
-    _errorMessage = '';
-    notifyListeners();
-
-    try {
-      if (apiurl != null) {
-        await ApiClient().saveApiUrl(apiurl);
-      }
-
-      final Uri loginUri = Uri.parse('${ApiClient().authUrl}');
-
-      final response = await http.post(
-        loginUri,
-        headers: {'Content-Type': 'application/json; charset=UTF-8'},
-        body: jsonEncode(<String, String>{
-          'username': usernameOrEmail,
-          'password': password,
-        }),
-      );
-
-      if (response.statusCode == 200) {
-        final responseData = json.decode(response.body);
-
-        // Assuming the response directly contains user data and potentially a token
-        // Adjust parsing based on your API's actual response structure
-        _currentUser = User.fromJson(responseData);
-
-        if (_currentUser != null) {
-          if (checkUserRole()) {
-            await ApiClient().saveUser(
-              _currentUser!,
-              password,
-              true, // Assuming you want to remember the user
-            );
-            _isLoading = false;
-            _isAuthenticated = true;
-          } else {
-            _errorMessage = 'L\'utilisateur n\'a pas de rôle défini.';
-            _isLoading = false;
-            _isAuthenticated = false;
-          }
-
-        } else {
-          _errorMessage =
-          'Echec de la connexion. L\'utilisateur est introuvable.';
-          _isLoading = false;
-          _isAuthenticated = false;
-
-        }
-      } else {
-        // Attempt to parse error message from response
-        try {
-          final errorData = json.decode(response.body);
-          _errorMessage =
-              errorData['message'] ??
-                  'Échec de la connexion. Code: ${response.statusCode}';
-        } catch (e) {
-          _errorMessage =
-          'Échec de la connexion. Code: ${response.statusCode}. Réponse invalide.';
-        }
-        _isLoading = false;
-        _isAuthenticated = false;
-
-      }
-    } catch (e) {
-
-      _errorMessage = 'Une erreur s\'est produite: ${e.toString()}';
-      _isLoading = false;
-      _isAuthenticated = false;
-
-    }finally{
-      _isLoading = false;
-      notifyListeners();
-    }
-  }
 
   Future<void> logout() async {
     _currentUser = null;

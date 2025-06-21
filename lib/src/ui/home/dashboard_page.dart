@@ -127,8 +127,6 @@ class _DashboardPageState extends State<DashboardPage> {
               );
             },
           ),
-          // You can add more IconButtons here if needed
-          // IconButton(icon: Icon(Icons.search), onPressed: () {}),
         ],
       ),
       body: Consumer<DashboardSaleService>(

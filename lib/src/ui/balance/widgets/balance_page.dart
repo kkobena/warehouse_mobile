@@ -21,8 +21,8 @@ class BalancePage extends StatefulWidget {
 }
 
 class _BalancePageState extends State<BalancePage> {
-  DateTime _fromDate = DateTime.now();
-  DateTime _toDate = DateTime.now();
+  DateTime _fromDate = Constant.fromDate;
+  DateTime _toDate = Constant.toDate;
 
   @override
   void initState() {

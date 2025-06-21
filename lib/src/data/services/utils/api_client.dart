@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:hive/hive.dart';
 
 import 'package:warehouse_mobile/src/data/auth/model/user.dart';
-import 'package:warehouse_mobile/src/utils/theme_profiver.dart';
+import 'package:warehouse_mobile/src/utils/theme_provider.dart';
 
 class ApiClient {
   static final ApiClient _instance = ApiClient._internal();
@@ -79,12 +79,12 @@ class ApiClient {
   }
 
   Future<void> updateTheme(AppThemes th) async {
-    print(th.name+'***********************');
+
     await _box.put('theme', th.name);
   }
 
   AppThemes fromString(String value) {
-    print(value+'***********************');
+
     return AppThemes.values.firstWhere(
       (e) => e.name.toLowerCase() == value.toLowerCase(),
       orElse: () => AppThemes.bleu, // or return null if nullable

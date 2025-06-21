@@ -9,16 +9,16 @@ import 'package:warehouse_mobile/src/data/services/utils/api_client.dart';
 import 'package:warehouse_mobile/src/ui/auth/authenticate.dart';
 import 'package:warehouse_mobile/src/ui/balance/widgets/balance_page.dart';
 import 'package:flutter/material.dart';
+import 'package:warehouse_mobile/src/ui/caisse/recap_caisse.dart';
 import 'package:warehouse_mobile/src/ui/home/dashboard_page.dart';
 import 'package:warehouse_mobile/src/ui/inventory/widgets/inventory_page.dart';
-import 'package:warehouse_mobile/src/ui/setting/widgets/setting_page.dart';
 import 'package:warehouse_mobile/src/ui/stock/widgets/stock_page.dart';
 import 'package:provider/provider.dart';
 import 'package:warehouse_mobile/src/ui/tvas/widgets/tva_page.dart';
 import 'package:warehouse_mobile/src/utils/app_drawer.dart';
 import 'package:warehouse_mobile/src/utils/constant.dart';
 import 'package:warehouse_mobile/src/utils/profile_page_router.dart';
-import 'package:warehouse_mobile/src/utils/theme_profiver.dart';
+import 'package:warehouse_mobile/src/utils/theme_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -36,7 +36,7 @@ void main() async {
       providers: [
         ChangeNotifierProvider(create: (_) => authService),
         ChangeNotifierProvider(create: (_) => DashboardSaleService()),
-        ChangeNotifierProvider(create: (_) => ThemeProfiver()),
+        ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider(create: (_) => BalanceService()),
         ChangeNotifierProvider(create: (_) => TvaService()),
         // Add other providers here if needed
@@ -52,7 +52,7 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    final themeProvider = Provider.of<ThemeProfiver>(context);
+    final themeProvider = Provider.of<ThemeProvider>(context);
     return MaterialApp(
       title: Constant.appName,
       theme:themeProvider.currentTheme ,
@@ -70,6 +70,7 @@ class MyApp extends StatelessWidget {
         '/': (context) => ProfilePageRouter(), // Default route
         Authenticate.routeName: (context) => const Authenticate(),
         MyHomePage.routeName: (context) => const MyHomePage(),
+        TvaPage.routeName: (context) => const TvaPage(),
         // Make sure MyHomePage has a routeName static const
         // Add other routes here
         // '/sales': (context) => SalesPage(),
@@ -109,8 +110,7 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // This is a good place to set up role-dependent UI elements
-    // because it's called after initState and when dependencies change (like Provider).
+
     _setupRoleBasedUI();
   }
 
@@ -121,13 +121,9 @@ class _MyHomePageState extends State<MyHomePage> {
     ); // listen: false is okay here
     final String? role = authService.currentUserRole;
 
-    // Default common pages (can be overridden by role-specific bodies)
-    // For now, let's keep the _pages simple and use a role-specific body.
-    // The BottomNav items could also change per role.
 
-    // Example: Tailor BottomNavigationBar items and pages by role
     if (role == Constant.profilAdmin) {
-      _pages = [DashboardPage(), StockPage(), BalancePage(), TvaPage()];
+      _pages = [DashboardPage(), StockPage(), BalancePage(), RecapCaisse()];
       _navBarItems = const [
         BottomNavigationBarItem(
           icon: Icon(Icons.home),
