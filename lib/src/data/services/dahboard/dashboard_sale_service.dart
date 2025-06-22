@@ -16,19 +16,19 @@ class DashboardSaleService extends ChangeNotifier {
 
   DashboardSaleService() : _sharedService = SharedService();
 
-  Future<void> fetchDashboard(String fromDate) async {
+  Future<void> fetchDashboard(String fromDate,String toDate ) async {
     final Map<String, String> queryParameters = {};
     if (fromDate.isNotEmpty) {
       queryParameters['fromDate'] = fromDate;
     }
+    if (toDate.isNotEmpty) {
+      queryParameters['toDate'] = toDate;
+    }
 
-    // Use the SharedService to fetch data
     final Dashboard? result = await _sharedService.fetchData<Dashboard>(
       endpoint: '/mobile/dashboard/data',
-      // Endpoint path
       queryParameters: queryParameters,
       parserFromJson: (jsonData) => Dashboard.fromJson(jsonData),
-      // Your specific parser
       setLoading: (loading) => _isLoading = loading,
       setError: (error) => _errorMessage = error,
       notifyListenersCallback: notifyListeners,

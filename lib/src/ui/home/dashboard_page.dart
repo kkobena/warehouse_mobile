@@ -5,6 +5,10 @@ import 'package:warehouse_mobile/src/models/dashboard.dart';
 import 'package:warehouse_mobile/src/models/list_item.dart';
 import 'package:flutter/material.dart';
 import 'package:warehouse_mobile/src/utils/card_builder.dart';
+import 'package:warehouse_mobile/src/utils/constant.dart';
+import 'package:warehouse_mobile/src/utils/custom_app_bar.dart';
+import 'package:warehouse_mobile/src/utils/date_range_state.dart';
+import 'package:warehouse_mobile/src/utils/filter_params_utils.dart';
 import 'package:warehouse_mobile/src/utils/metter_group_builder.dart';
 
 class DashboardPage extends StatefulWidget {
@@ -17,44 +21,60 @@ class DashboardPage extends StatefulWidget {
 }
 
 class _DashboardPageState extends State<DashboardPage> {
-  DateTime _selectedDate = DateTime.now();
+ // DateTime _selectedDate = DateTime.now();
+  late DateTime _fromDate;
 
-  // Fonction pour afficher le DatePicker
-  Future<void> _selectDate(BuildContext context) async {
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: _selectedDate,
-      // Date initialement sélectionnée dans le picker
-      firstDate: DateTime(2024),
-      // Date la plus ancienne sélectionnable
-      lastDate: DateTime.now(),
-
-      // Date la plus récente sélectionnable
-      locale: const Locale('fr', 'FR'), // Exemple pour le français
-    );
-    if (picked != null && picked != _selectedDate) {
-      setState(() {
-        _selectedDate = picked;
-      });
-    }
+  late DateTime _toDate;
+  Future<void> _fetchData() async {
+    if (!mounted) return;
+    final dashboardSaleService = context.read<DashboardSaleService>();
+    final String fromDateString = Constant.datePattern.format(_fromDate);
+    final String toDateString = Constant.datePattern.format(_toDate);
+    await dashboardSaleService.fetchDashboard(fromDateString, toDateString);
   }
 
+
+  void _showDateRangePicker() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: Constant.roundedRectangleBorder,
+      builder: (BuildContext bottomSheetContext) {
+        return FilterParamsUtils(
+          initialFromDate: _fromDate,
+          initialToDate: _toDate,
+          firstDate: Constant.firstDate,
+          lastDate: Constant.lastDate,
+          sheetTitleText: Constant.selectPeriodeText,
+          onDateRangeSelected: (newFromDate, newToDate) {
+            if (!mounted) return;
+            setState(() {
+              _fromDate = newFromDate;
+              _toDate = newToDate;
+            });
+
+          },
+          onApplyAll: () {
+            _fetchData();
+          },
+        );
+      },
+    );
+  }
   @override
   void initState() {
     super.initState();
+    final dateRangeState = Provider.of<DateRangeState>(context, listen: false);
+    _fromDate = dateRangeState.selectedFromDate;
+    _toDate = dateRangeState.selectedToDate;
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<DashboardSaleService>().fetchDashboard(
-        DateFormat('y-MM-dd').format(_selectedDate),
-      );
+      _fetchData();
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    final String formattedDate = DateFormat(
-      DateFormat.YEAR_MONTH_DAY,
-      'fr_FR', // Format de date en français
-    ).format(_selectedDate);
+
     final Color primaryColor = Theme.of(context).colorScheme.primary;
 
     final HSLColor hslPrimary = HSLColor.fromColor(primaryColor);
@@ -64,70 +84,13 @@ class _DashboardPageState extends State<DashboardPage> {
     );
     final Color lighterPrimaryColor = hslLighterPrimary.toColor();
 
-    final Color gradientStart = primaryColor;
-    final Color gradientEnd = lighterPrimaryColor;
-    Color gradientForegroundColor = Theme.of(context).colorScheme.onPrimary;
-    const Color gradientForeground = Colors.white;
 
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-
-        elevation: 0,
-
-        foregroundColor: gradientForeground,
-
-        flexibleSpace: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [gradientStart, gradientEnd],
-              begin: Alignment.topLeft, // Gradient start position
-              end: Alignment.bottomRight, // Gradient end position
-
-            ),
-          ),
-        ),
-        title: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          // Center the date picker within the available title space
-          mainAxisSize: MainAxisSize.min,
-          // Try to keep the Row compact
-          children: [
-            TextButton(
-              onPressed: () => _selectDate(context),
-              style: TextButton.styleFrom(
-                foregroundColor: gradientForegroundColor,
-                padding: EdgeInsets.symmetric(
-                  horizontal: 8.0,
-                  vertical: 4.0,
-                ), // Adjust padding if needed
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    formattedDate,
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  SizedBox(width: 8),
-                  Icon(Icons.calendar_today, size: 20),
-                ],
-              ),
-            ),
-          ],
-        ),
-        centerTitle: true,
-        actions: <Widget>[
-          IconButton(
-            icon: Icon(Icons.refresh),
-            tooltip: 'Actualiser',
-            onPressed: () {
-              context.read<DashboardSaleService>().fetchDashboard(
-                DateFormat('y-MM-dd').format(_selectedDate),
-              );
-            },
-          ),
-        ],
+      appBar:  CustomAppBar( // Using the shared AppBar
+          fromDate: _fromDate,
+          toDate: _toDate,
+          onDateRangeTap: _showDateRangePicker,
+          onRefreshTap: _fetchData
       ),
       body: Consumer<DashboardSaleService>(
         builder: (context, service, child) {

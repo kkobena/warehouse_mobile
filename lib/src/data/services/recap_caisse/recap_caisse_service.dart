@@ -1,24 +1,23 @@
-
-import 'package:warehouse_mobile/src/models/balance.dart';
+import 'package:warehouse_mobile/src/models/caisse/recap_caisse.dart';
 import 'package:warehouse_mobile/src/utils/service/shared_service.dart';
 import 'package:warehouse_mobile/src/utils/service_state_wrapper.dart';
 
-class BalanceService extends BaseServiceNotifier {
+class RecapCaisseService extends BaseServiceNotifier {
   final SharedService _sharedService;
-  Balance? _balance;
+  RecapCaisse? _recapCaisse;
   bool _isLoading = false;
   String _errorMessage = '';
 
-  Balance? get balance => _balance;
+  RecapCaisse? get recapCaisse => _recapCaisse;
   @override
   bool get isLoading => _isLoading;
   @override
   String get errorMessage => _errorMessage;
   @override
-  bool get hasData => _balance != null && _balance!.items.isNotEmpty;
-  BalanceService() : _sharedService = SharedService();
+  bool get hasData => _recapCaisse != null && _recapCaisse!.items.isNotEmpty;
+  RecapCaisseService() : _sharedService = SharedService();
 
-  Future<void> fetch(String fromDate, String toDate) async {
+  Future<void> fetch(String fromDate, String toDate,bool onlyVente) async {
     final Map<String, String> queryParameters = {};
     if (fromDate.isNotEmpty) {
       queryParameters['fromDate'] = fromDate;
@@ -26,15 +25,21 @@ class BalanceService extends BaseServiceNotifier {
     if (toDate.isNotEmpty) {
       queryParameters['toDate'] = toDate;
     }
+    if (onlyVente) {
+      queryParameters['onlyVente'] = 'true';
+    }else{
+      queryParameters['onlyVente'] = 'false';
+    }
 
-    _balance = await _sharedService.fetchData<Balance>(
-      endpoint: '/mobile/balance',
+    _recapCaisse = await _sharedService.fetchData<RecapCaisse>(
+      endpoint: '/mobile/recap-caisse',
       queryParameters: queryParameters,
-      parserFromJson: (jsonData) => Balance.fromJson(jsonData),
+      parserFromJson: (jsonData) => RecapCaisse.fromJson(jsonData),
       setLoading: (loading) => _isLoading = loading,
       setError: (error) => _errorMessage = error,
       notifyListenersCallback: notifyListeners,
 
     );
   }
+
 }

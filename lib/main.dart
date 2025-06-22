@@ -4,21 +4,26 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:warehouse_mobile/src/data/auth/servie/auth_service.dart';
 import 'package:warehouse_mobile/src/data/services/balance/balance_service.dart';
 import 'package:warehouse_mobile/src/data/services/dahboard/dashboard_sale_service.dart';
+import 'package:warehouse_mobile/src/data/services/produit/produit_service.dart';
+import 'package:warehouse_mobile/src/data/services/recap_caisse/recap_caisse_service.dart';
 import 'package:warehouse_mobile/src/data/services/tva/tva_service.dart';
 import 'package:warehouse_mobile/src/data/services/utils/api_client.dart';
 import 'package:warehouse_mobile/src/ui/auth/authenticate.dart';
 import 'package:warehouse_mobile/src/ui/balance/widgets/balance_page.dart';
 import 'package:flutter/material.dart';
-import 'package:warehouse_mobile/src/ui/caisse/recap_caisse.dart';
+import 'package:warehouse_mobile/src/ui/caisse/recap_caisse_page.dart';
 import 'package:warehouse_mobile/src/ui/home/dashboard_page.dart';
 import 'package:warehouse_mobile/src/ui/inventory/widgets/inventory_page.dart';
+import 'package:warehouse_mobile/src/ui/stock/widgets/product_search_page.dart';
 import 'package:warehouse_mobile/src/ui/stock/widgets/stock_page.dart';
 import 'package:provider/provider.dart';
 import 'package:warehouse_mobile/src/ui/tvas/widgets/tva_page.dart';
 import 'package:warehouse_mobile/src/utils/app_drawer.dart';
 import 'package:warehouse_mobile/src/utils/constant.dart';
+import 'package:warehouse_mobile/src/utils/date_range_state.dart';
 import 'package:warehouse_mobile/src/utils/profile_page_router.dart';
 import 'package:warehouse_mobile/src/utils/theme_provider.dart';
+
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -39,6 +44,9 @@ void main() async {
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider(create: (_) => BalanceService()),
         ChangeNotifierProvider(create: (_) => TvaService()),
+        ChangeNotifierProvider(create: (_) => RecapCaisseService()),
+        ChangeNotifierProvider(create: (_) => DateRangeState()),
+        ChangeNotifierProvider(create: (_) => ProduitService()),
         // Add other providers here if needed
       ],
       child: MyApp(),
@@ -70,7 +78,8 @@ class MyApp extends StatelessWidget {
         '/': (context) => ProfilePageRouter(), // Default route
         Authenticate.routeName: (context) => const Authenticate(),
         MyHomePage.routeName: (context) => const MyHomePage(),
-        TvaPage.routeName: (context) => const TvaPage(),
+        StockPage.routeName: (context) => const StockPage(),
+        ProductSearchPage.routeName: (context) => const ProductSearchPage(),
         // Make sure MyHomePage has a routeName static const
         // Add other routes here
         // '/sales': (context) => SalesPage(),
@@ -92,7 +101,7 @@ class _MyHomePageState extends State<MyHomePage> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   List<String> _pageTitles = [
     Constant.tableau, // Title for DashboardPage
-    Constant.stock, // Title for StockPage
+    Constant.tva, // Title for StockPage
     Constant.balance, // Title for BalancePage
     Constant.recapitulatifCaisse, // Title for SettingPage
   ];
@@ -123,22 +132,22 @@ class _MyHomePageState extends State<MyHomePage> {
 
 
     if (role == Constant.profilAdmin) {
-      _pages = [DashboardPage(), StockPage(), BalancePage(), RecapCaisse()];
+      _pages = [DashboardPage(), TvaPage(), BalancePage(), RecapCaissePage()];
       _navBarItems = const [
         BottomNavigationBarItem(
           icon: Icon(Icons.home),
           label: Constant.tableau,
         ),
         BottomNavigationBarItem(
-          icon: Icon(Icons.inventory),
-          label: Constant.stock,
+          icon: Icon(Icons.currency_exchange),
+          label: Constant.tva,
         ),
         BottomNavigationBarItem(
           icon: Icon(Icons.sell),
           label: Constant.balance,
         ),
         BottomNavigationBarItem(
-          icon: Icon(Icons.settings),
+          icon: Icon(Icons.receipt_long),
           label: Constant.recapitulatifCaisse,
         ),
       ];
@@ -148,7 +157,7 @@ class _MyHomePageState extends State<MyHomePage> {
       _navBarItems = const [
         BottomNavigationBarItem(
           icon: Icon(Icons.inventory),
-          label: Constant.stock,
+          label: Constant.inventaire,
         ),
       ];
     }
@@ -157,10 +166,7 @@ class _MyHomePageState extends State<MyHomePage> {
     if (_currentIndex >= _pages.length) {
       _currentIndex = 0;
     }
-    // Trigger a rebuild if called from didChangeDependencies and state actually changed.
-    // No explicit setState needed if this is the first time it's built or
-    // if Provider above triggers a rebuild. If you call this method at other times,
-    // you might need setState(() {});
+
   }
 
   @override

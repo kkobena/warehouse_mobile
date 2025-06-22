@@ -1,6 +1,5 @@
 
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:warehouse_mobile/src/data/services/balance/balance_service.dart';
 import 'package:warehouse_mobile/src/models/balance.dart';
@@ -9,7 +8,8 @@ import 'package:warehouse_mobile/src/models/card_name.dart';
 import 'package:warehouse_mobile/src/utils/card_builder.dart';
 import 'package:warehouse_mobile/src/utils/constant.dart';
 import 'package:warehouse_mobile/src/utils/custom_app_bar.dart';
-import 'package:warehouse_mobile/src/utils/date_range_picker.dart';
+import 'package:warehouse_mobile/src/utils/date_range_state.dart';
+import 'package:warehouse_mobile/src/utils/filter_params_utils.dart';
 import 'package:warehouse_mobile/src/utils/metter_group_builder.dart';
 import 'package:warehouse_mobile/src/utils/service_state_wrapper.dart';
 
@@ -21,64 +21,67 @@ class BalancePage extends StatefulWidget {
 }
 
 class _BalancePageState extends State<BalancePage> {
-  DateTime _fromDate = Constant.fromDate;
-  DateTime _toDate = Constant.toDate;
+
 
   @override
   void initState() {
     super.initState();
-    /*   WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<BalanceService>().fetch(
-        DateFormat('yyyy-MM-dd').format(_fromDate),
-        DateFormat('yyyy-MM-dd').format(_toDate),
-      );
-    });*/
+
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final dateRangeState = Provider.of<DateRangeState>(context, listen: false);
+      _fetchData(dateRangeState.selectedFromDate, dateRangeState.selectedToDate);
+    });
   }
 
-  Future<void> _fetchBalanceData() async {
+  Future<void> _fetchData(DateTime from,DateTime to) async {
     if (!mounted) return;
     final balanceService = Provider.of<BalanceService>(context, listen: false);
-    final String fromDateString = DateFormat('yyyy-MM-dd').format(_fromDate);
-    final String toDateString = DateFormat('yyyy-MM-dd').format(_toDate);
+    final String fromDateString = Constant.datePattern.format(from);
+    final String toDateString = Constant.datePattern.format(to);
     await balanceService.fetch(fromDateString, toDateString);
   }
-
   void _showDateRangePicker() {
+    final dateRangeState = Provider.of<DateRangeState>(context, listen: false);
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       // Important for accommodating content and keyboard
-      shape: const RoundedRectangleBorder(
-        // Optional: for rounded top corners
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
+      shape: Constant.roundedRectangleBorder,
       builder: (BuildContext bottomSheetContext) {
-        return DateRangePicker(
-          initialFromDate: _fromDate,
-          initialToDate: _toDate,
+        return FilterParamsUtils(
+          initialFromDate: dateRangeState.selectedFromDate,
+          initialToDate: dateRangeState.selectedToDate,
           firstDate: Constant.firstDate,
           lastDate: Constant.lastDate,
+          sheetTitleText: Constant.selectPeriodeText,
           onDateRangeSelected: (newFromDate, newToDate) {
-            setState(() {
-              _fromDate = newFromDate;
-              _toDate = newToDate;
-            });
-            // After setting new dates, refetch the balance data
-            _fetchBalanceData();
+
+
+          },
+          onApplyAll: () {
+            if (!mounted) return;
+            final latestDates = Provider.of<DateRangeState>(context, listen: false);
+            _fetchData(latestDates.selectedFromDate, latestDates.selectedToDate);
           },
         );
       },
     );
   }
 
+
   @override
   Widget build(BuildContext context) {
+    final dateRangeState = context.watch<DateRangeState>();
     return Scaffold(
       appBar: CustomAppBar(
-        fromDate: _fromDate,
-        toDate: _toDate,
+        fromDate: dateRangeState.selectedFromDate,
+        toDate: dateRangeState.selectedToDate,
         onDateRangeTap: _showDateRangePicker,
-        onRefreshTap: _fetchBalanceData,
+        onRefreshTap: () => _fetchData(
+          dateRangeState.selectedFromDate,
+          dateRangeState.selectedToDate,
+        ),
       ),
 
       body: Column(
@@ -90,8 +93,12 @@ class _BalancePageState extends State<BalancePage> {
                   service: balanceService,
                   data: balanceService.balance, // Pass the actual data object
                   successBuilder: (BuildContext context, Balance balanceData) {
+
                     return RefreshIndicator(
-                      onRefresh: _fetchBalanceData,
+                      onRefresh:  () => _fetchData(
+                        dateRangeState.selectedFromDate,
+                        dateRangeState.selectedToDate,
+                      ),
                       // Call the method that uses current dates
                       child: ListView.builder(
                         padding: const EdgeInsets.all(8.0),
@@ -124,10 +131,7 @@ class _BalancePageState extends State<BalancePage> {
                       ),
                     );
                   },
-                  // Optional: Provide custom loading, error, or empty widgets
-                  // loadingWidget: MyCustomLoadingSpinner(),
-                  // emptyDataWidget: MyCustomEmptyStateIllustration(),
-                  // errorBuilder: (context, errorMessage) => MyCustomErrorWidget(message: errorMessage),
+
                 );
               },
             ),
@@ -135,14 +139,7 @@ class _BalancePageState extends State<BalancePage> {
         ],
       ),
 
-      /*,
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => Provider.of<DashboardSaleService>(
-          context,
-          listen: false,
-        ).fetchDashboard(),
-        child: const Icon(Icons.refresh),
-      ),*/
+
     );
   }
 }
