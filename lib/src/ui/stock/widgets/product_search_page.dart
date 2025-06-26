@@ -1,11 +1,14 @@
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:warehouse_mobile/src/data/services/produit/produit_service.dart';
+import 'package:warehouse_mobile/src/models/list_item.dart';
+import 'package:warehouse_mobile/src/models/produit/etat_produit.dart';
 import 'package:warehouse_mobile/src/models/produit/produit.dart';
+import 'package:warehouse_mobile/src/utils/constant.dart';
 
 class ProductSearchPage extends StatefulWidget {
   static const String routeName = '/produit';
+
   const ProductSearchPage({super.key});
 
   @override
@@ -16,7 +19,7 @@ class _ProductSearchPageState extends State<ProductSearchPage> {
   Produit? _selectedProduit; // To store the selected product for detail display
   final TextEditingController _textEditingController = TextEditingController();
   final FocusNode _focusNode = FocusNode();
-  String _currentSearchTerm = "";
+
   @override
   void initState() {
     super.initState();
@@ -24,66 +27,117 @@ class _ProductSearchPageState extends State<ProductSearchPage> {
       // Initialize or fetch data here if needed
     });
   }
+
   @override
   void dispose() {
     _textEditingController.dispose();
+    _focusNode.dispose();
     super.dispose();
   }
-
-  Future<void> _fetchProducts({String? searchTerm}) async {
-    // Use the provided searchTerm, or the controller's text, or the last search term
-    final String query = searchTerm ?? _textEditingController.text;
-    if (!mounted) return;
-
-    // Get the ProduitService instance from Provider
-    final produitService = Provider.of<ProduitService>(context, listen: false);
-
-    await produitService.fetchAll(query);
-
-    // Update the current search term if the fetch was initiated by a new search
-    if (searchTerm != null || query != _currentSearchTerm) {
-      if (mounted) {
-        setState(() {
-          _currentSearchTerm = query;
-        });
-      }
-    }
-  }
-
 
   Widget _buildProduitSuggestionTile(
     BuildContext context,
     Produit produit,
     VoidCallback onTap,
   ) {
-    final Color titleColor =
-        Theme.of(context).textTheme.titleLarge?.color ??
-        Theme.of(context).colorScheme.onSurface;
     final Color? itemTextColor = Theme.of(context).textTheme.bodyMedium?.color;
 
-    return ListTile(
-      leading: Icon(Icons.inventory_2_outlined),
-      // title:   Text(produit.name),
-      title: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 4.0),
+    // Determine row color for the text of the quantity (or the whole row if preferred)
+    Color? quantityTextColor = itemTextColor; // Default text color
+    // The commented-out 'rowColor' could be used for the Container's background
+    // Color? rowBackgroundColor = Colors.transparent;
+
+    if (produit.totalQuantity != null && produit.totalQuantity! < 0) {
+      quantityTextColor = Colors.red[300] ?? Colors.red;
+      // rowBackgroundColor = (Colors.red[300] ?? Colors.red).withOpacity(0.2); // Example background
+    } else if (produit.totalQuantity != null &&
+        produit.qtySeuilMini != null &&
+        produit.totalQuantity! < produit.qtySeuilMini!) {
+      quantityTextColor = Colors.orange[300] ?? Colors.orange;
+      // rowBackgroundColor = (Colors.orange[300] ?? Colors.orange).withOpacity(0.2); // Example background
+    }
+
+    return InkWell(
+      // **** ADD InkWell OR GestureDetector FOR TAPPING ****
+      onTap: onTap, // **** CALL THE PASSED onTap CALLBACK ****
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 2.0),
+        child: Container(
+          // color: rowBackgroundColor, // Apply background color here if you want the whole row colored
+          padding: const EdgeInsets.all(8.0), // Increased padding a bit
+          child: Row(
+            children: [
+              Expanded(
+                flex: 3,
+                child: Text(
+                  produit.libelle,
+                  style: TextStyle(fontSize: 13, color: itemTextColor),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              const SizedBox(width: 5),
+              Expanded(
+                flex: 1, // Adjusted flex for quantity, if you add it
+                child: Text(
+                  Constant.formatNumber(produit.totalQuantity),
+                  // Display quantity
+                  textAlign: TextAlign.end,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color:
+                        quantityTextColor, // Use the dynamic color for quantity
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                flex: 2,
+                child: Text(
+                  produit.codeCip ?? '',
+                  textAlign: TextAlign.end,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: itemTextColor,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /*  return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2.0),
+      child: Container(
+        // Wrap the Row with a Container to set the background color
+      //  color: rowColor,
+        padding: const EdgeInsets.all(4.0),
+        // Optional: Add some padding inside the colored container
         child: Row(
           children: [
             Expanded(
-              flex: 2,
+              flex: 3,
               child: Text(
                 produit.libelle,
-                style: TextStyle(fontSize: 15, color: itemTextColor),
+                style: TextStyle(fontSize: 13, color: itemTextColor),
                 overflow: TextOverflow.ellipsis,
               ),
             ),
             const SizedBox(width: 5),
             Expanded(
-              flex: 3,
+              flex: 2,
               child: Text(
-                produit.codeCip!,
+                produit.codeCip ?? '',
+                // Handle potential null value for codeCip
                 textAlign: TextAlign.end,
                 style: TextStyle(
-                  fontSize: 15,
+                  fontSize: 13,
                   fontWeight: FontWeight.w600,
                   color: itemTextColor,
                 ),
@@ -93,42 +147,40 @@ class _ProductSearchPageState extends State<ProductSearchPage> {
           ],
         ),
       ),
-
-      // subtitle: Text('Qty: ${produit.quantity ?? "N/A"} • Price: ${produit.unitPrice ?? "N/A"}'),
-      onTap: onTap, // onTap will be provided by Autocomplete's optionsViewBuilder
-    );
-  }
-
-
-
+    );*/
 
   @override
   Widget build(BuildContext context) {
     final produitService = Provider.of<ProduitService>(context, listen: false);
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Search Products'),
-      ),
+      appBar: AppBar(title: Text(Constant.produitPageTitle)),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(4.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
-            // --- Autocomplete Search Field ---
             Autocomplete<Produit>(
-              // displayStringForOption: (Produit option) => option.name, // Correct
-              displayStringForOption: (Produit option) { // Added for clarity
-                return option.libelle;
-              },
+              displayStringForOption: (Produit option) =>
+                  '${option.libelle} (${option.codeCip ?? ''})',
+              // Added null check for codeCip
               optionsBuilder: (TextEditingValue textEditingValue) async {
                 if (textEditingValue.text.trim().isEmpty) {
                   return const Iterable<Produit>.empty();
                 }
-
-                await produitService.fetchAll(textEditingValue.text);
+                final String searchTerm = textEditingValue.text.trim();
+                if (searchTerm.length < 2) {
+                  // Consider reducing min length or make it configurable
+                  return const Iterable<Produit>.empty();
+                }
+                // It's good practice to show a loading indicator here
+                // For now, it will just wait.
+                await produitService.fetchAll(searchTerm);
                 if (produitService.errorMessage.isNotEmpty) {
-
+                  // Optionally show the error message to the user (e.g., via a SnackBar)
+                  debugPrint(
+                    "Error fetching produits: ${produitService.errorMessage}",
+                  );
                   return const Iterable<Produit>.empty();
                 }
                 return produitService.items ?? const Iterable<Produit>.empty();
@@ -136,83 +188,97 @@ class _ProductSearchPageState extends State<ProductSearchPage> {
               onSelected: (Produit selection) {
                 setState(() {
                   _selectedProduit = selection;
-                  // Optional: Clear the text field or keep the selected name
-                  _textEditingController.text = selection.libelle; // Keep name in field
-                  //_textEditingController.clear(); // Or clear it
-                  _focusNode.unfocus(); // Unfocus to hide keyboard and options
+                  _textEditingController.text =
+                      selection.libelle; // Keep or update as needed
+                  _focusNode.unfocus();
                 });
-                print('Selected: ${selection.libelle}');
               },
-              fieldViewBuilder: (BuildContext context,
-                  TextEditingController fieldTextEditingController,
-                  FocusNode fieldFocusNode,
-                  VoidCallback onFieldSubmitted) {
-
-
-                return TextField(
-                  controller: fieldTextEditingController, // Use Autocomplete's controller
-                  focusNode: fieldFocusNode,             // Use Autocomplete's focus node
-                  decoration: InputDecoration(
-                    hintText: 'Enter product name...',
-                    labelText: 'Search Product',
-                    border: OutlineInputBorder(),
-                    suffixIcon: fieldTextEditingController.text.isNotEmpty
-                        ? IconButton(
-                      icon: Icon(Icons.clear),
-                      onPressed: () {
-                        fieldTextEditingController.clear();
-                        setState(() {
-                          _selectedProduit = null; // Clear details if search is cleared
-                        });
-                      },
-                    )
-                        : null,
-                  ),
-                  onSubmitted: (String value) {
-                    onFieldSubmitted(); // Important for accessibility & keyboard actions
-                  },
-                );
-              },
-              optionsViewBuilder: (BuildContext context,
-                  AutocompleteOnSelected<Produit> onSelected,
-                  Iterable<Produit> options) {
-                return Align(
-                  alignment: Alignment.topLeft,
-                  child: Material(
-                    elevation: 4.0,
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints(maxHeight: 250), // Limit height of suggestions
-                      child: ListView.builder(
-                        padding: EdgeInsets.zero,
-                        itemCount: options.length,
-                        itemBuilder: (BuildContext context, int index) {
-                          final Produit option = options.elementAt(index);
-                          // Use a widget to display each product suggestion
-                          return _buildProduitSuggestionTile(
-                            context,
-                            option,
-                                () => onSelected(option), // Call onSelected when tapped
-                          );
-                        },
+              fieldViewBuilder:
+                  (
+                    BuildContext context,
+                    TextEditingController fieldTextEditingController,
+                    FocusNode fieldFocusNode,
+                    VoidCallback onFieldSubmitted,
+                  ) {
+                    // Important: Use the Autocomplete's provided controller and focus node
+                    // _textEditingController = fieldTextEditingController; // NO! This creates issues.
+                    // _focusNode = fieldFocusNode; // NO!
+                    return TextField(
+                      controller: fieldTextEditingController, // USE THIS
+                      focusNode: fieldFocusNode, // USE THIS
+                      decoration: InputDecoration(
+                        hintText: Constant.produitSearchInputPlaceholder,
+                        labelText: Constant.produitSearchInputLabel,
+                        border: OutlineInputBorder(),
+                        suffixIcon: fieldTextEditingController.text.isNotEmpty
+                            ? IconButton(
+                                icon: Icon(Icons.clear),
+                                onPressed: () {
+                                  fieldTextEditingController.clear();
+                                  setState(() {
+                                    _selectedProduit = null;
+                                  });
+                                  // Optionally call onFieldSubmitted or focusNode.unfocus() if needed
+                                },
+                              )
+                            : null,
                       ),
+                      onSubmitted: (String value) {
+                        onFieldSubmitted();
+                      },
+                    );
+                  },
+              optionsViewBuilder:
+                  (
+                    BuildContext context,
+                    AutocompleteOnSelected<Produit> onSelected,
+                    // This is the callback to use
+                    Iterable<Produit> options,
+                  ) {
+                    return Align(
+                      alignment: Alignment.topLeft,
+                      child: Material(
+                        elevation: 2.0, // Increased elevation slightly
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(
+                            maxHeight: MediaQuery.of(context).size.height * 0.3,
+                          ), // Responsive max height
+                          child: ListView.builder(
+                            padding: EdgeInsets.zero,
+                            shrinkWrap: true,
+                            // Add this if not already constrained by parent
+                            itemCount: options.length,
+                            itemBuilder: (BuildContext context, int index) {
+                              final Produit option = options.elementAt(index);
+                              return _buildProduitSuggestionTile(
+                                context,
+                                option,
+                                () => onSelected(
+                                  option,
+                                ), // **** PASS THE CORRECT onSelected CALLBACK ****
+                              );
+                            },
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+            ),
+            const SizedBox(height: 6),
+            if (_selectedProduit != null)
+              Expanded(child: ProduitDetailWidget(produit: _selectedProduit!))
+            else
+              Expanded(
+                // Use Expanded here too for consistent layout if needed
+                child: Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(20.0),
+                    child: Text(
+                      Constant.produitDetailText,
+                      style: Theme.of(context).textTheme.titleMedium,
+                      textAlign: TextAlign.center,
                     ),
                   ),
-                );
-              },
-            ),
-
-            const SizedBox(height: 24),
-
-            // --- Detail Display Section ---
-            if (_selectedProduit != null)
-              Expanded( // Use Expanded if you want details to take remaining space
-                child: ProduitDetailWidget(produit: _selectedProduit!), // Your detail widget
-              )
-            else
-              Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(20.0),
-                  child: Text('Select a product to see details.', style: Theme.of(context).textTheme.titleMedium),
                 ),
               ),
           ],
@@ -220,42 +286,205 @@ class _ProductSearchPageState extends State<ProductSearchPage> {
       ),
     );
   }
-
 }
+
 class ProduitDetailWidget extends StatelessWidget {
   final Produit produit;
 
-  const ProduitDetailWidget({Key? key, required this.produit}) ;
+  const ProduitDetailWidget({Key? key, required this.produit});
 
   @override
   Widget build(BuildContext context) {
+    final Color circleAvatarForegroundColor =
+        Constant.getCircleAvatarForegroundColor(context);
+    final Color titleColor =
+        Theme.of(context).textTheme.titleLarge?.color ??
+        Theme.of(context).colorScheme.onSurface;
 
-    return Card(
-      elevation: 2,
+    Color? rowColor = Theme.of(
+      context,
+    ).textTheme.bodyMedium?.color; // Default color
+    if (produit.totalQuantity != null && produit.totalQuantity! < 0) {
+      rowColor = Colors.red[300] ?? Colors.red; // Light red for negative stock
+    } else if (produit.totalQuantity != null &&
+        produit.qtySeuilMini != null &&
+        produit.totalQuantity! < produit.qtySeuilMini!) {
+      rowColor =
+          Colors.orange[300] ??
+          Colors.orange; // Light orange for below minimum threshold
+    }
+
+    return SingleChildScrollView(
+      physics: const ClampingScrollPhysics(
+        parent: AlwaysScrollableScrollPhysics(),
+      ),
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: SingleChildScrollView( // Make details scrollable if they are long
+        padding: const EdgeInsets.all(0.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            _buildProduitInfo(context, rowColor!, titleColor),
+            _buildStocks(context, titleColor, rowColor),
+            _buildProduitEtatMetterGroup(context: context),
+            _buildGrossiste(context, titleColor, rowColor),
+            _buildRayons(context, titleColor, rowColor),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStockRow(String label, int? stock, Color rowColor) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 100,
+            child: Text(label, style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+          Expanded(
+            child: Text(
+              Constant.formatNumber(stock),
+              textAlign: TextAlign.end,
+              style: TextStyle(fontWeight: FontWeight.bold, color: rowColor),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDetailRow(String label, String? value) {
+    if (value == null || value.isEmpty) {
+      return SizedBox.shrink(); // Return empty widget if value is empty
+    }
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Text(label, style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+          Expanded(child: Text(value, textAlign: TextAlign.end)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProduitInfo(
+    BuildContext context,
+    Color rowColor,
+    Color titleColor,
+  ) {
+    final Color circleAvatarForegroundColor =
+        Constant.getCircleAvatarForegroundColor(context);
+
+    final Color circleAvatarBackgroundColor =
+        Constant.getCircleAvatarBackgroundColor(context);
+    final String firstLetter = Constant.getFirstLetter(produit.libelle);
+    return Card(
+      elevation: 0.2,
+      shape: Constant.roundedRectangleBorder,
+      margin: const EdgeInsets.all(2.0),
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: SingleChildScrollView(
+          // Make details scrollable if they are long
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
-              Text(
-                produit.libelle,
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  CircleAvatar(
+                    radius: 20,
+                    backgroundColor: circleAvatarBackgroundColor,
+                    child: Text(
+                      firstLetter,
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: circleAvatarForegroundColor,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      produit.libelle,
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                        color: titleColor,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 2,
+                    ),
+                  ),
+                ],
               ),
-              SizedBox(height: 12),
-              _buildDetailRow('ID:', produit.id.toString() ?? 'N/A'),
-              _buildDetailRow('Quantity:', produit.totalQuantity?.toString() ?? 'N/A'),
-              _buildDetailRow('Unit Price:', produit.regularUnitPrice.toString() ?? 'N/A'),
-              // _buildDetailRow('Gross Amount:', produit.grossAmount ?? 'N/A'),
+              const SizedBox(height: 8),
+              Divider(
+                height: 1,
+                color: Theme.of(context).dividerColor.withValues(alpha: 0.5),
+              ),
+              const SizedBox(height: 8),
 
-              // Example for showing related data (conceptual)
-              // if (produit.commdes != null && produit.commdes!.isNotEmpty) ...[
-              //   SizedBox(height: 16),
-              //   Text("Recent Orders:", style: Theme.of(context).textTheme.titleMedium),
-              //   ...produit.commdes!.take(3).map((c) => ListTile(title: Text("Order ${c.id}"))),
-              // ],
-              // Add more details as needed from your ProduitDetailBody design
+              _buildDetailRow(Constant.cip, produit.codeCip),
+              _buildStockRow(
+                Constant.qteStockTotal,
+                produit.totalQuantity,
+                rowColor,
+              ),
+              _buildDetailRow(
+                Constant.qteReserve,
+                Constant.formatNumber(produit.qtyReserve),
+              ),
+              _buildDetailRow(
+                Constant.prixAchat,
+                Constant.formatNumber(produit.grossAmount),
+              ),
+              _buildDetailRow(
+                Constant.prixVente,
+                Constant.formatNumber(produit.regularUnitPrice),
+              ),
+              _buildDetailRow(
+                Constant.qteSeuil,
+                Constant.formatNumber(produit.qtySeuilMini),
+              ),
+              _buildDetailRow(
+                Constant.qteReap,
+                Constant.formatNumber(produit.qtyAppro),
+              ),
+              _buildDetailRow(
+                Constant.datePeremption,
+                produit.perimeAtFormatted,
+              ),
+              _buildDetailRow(
+                Constant.lastDateOfSale,
+                produit.lastDateOfSaleFormatted,
+              ),
+              _buildDetailRow(
+                Constant.lastOrderDate,
+                produit.lastOrderDateFormatted,
+              ),
+              _buildDetailRow(
+                Constant.lastInventoryDate,
+                produit.lastInventoryDateFormatted,
+              ),
+
+              _buildDetailRow(
+                Constant.tvaCode,
+                Constant.formatNumber(produit.tvaTaux),
+              ),
+
+              _buildDetailRow("Rayon", produit.rayonLibelle),
+              _buildDetailRow(Constant.laboratoire, produit.laboratoireLibelle),
+              _buildDetailRow(Constant.gamme, produit.gammeLibelle),
             ],
           ),
         ),
@@ -263,15 +492,422 @@ class ProduitDetailWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildDetailRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4.0),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(width: 100, child: Text(label, style: TextStyle(fontWeight: FontWeight.bold))),
-          Expanded(child: Text(value)),
-        ],
+  Widget _buildStocks(BuildContext context, Color titleColor, Color rowColor) {
+    if (produit.stockProduits == null ||
+        produit.stockProduits!.isEmpty ||
+        produit.stockProduits!.length < 2) {
+      return SizedBox.shrink();
+    }
+    final Color circleAvatarForegroundColor =
+        Constant.getCircleAvatarForegroundColor(context);
+    final Color circleAvatarBackgroundColor =
+        Constant.getCircleAvatarBackgroundColor(context);
+    final String firstLetter = Constant.getFirstLetter(Constant.produitStock);
+    return Card(
+      elevation: 0.2,
+      shape: Constant.roundedRectangleBorder,
+      child: Padding(
+        padding: const EdgeInsets.all(12.0),
+        child: Column(
+          // This Column should also try to be as small as possible
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min, // **** ADD THIS ****
+          children: <Widget>[
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                CircleAvatar(
+                  radius: 20,
+                  backgroundColor: circleAvatarBackgroundColor,
+                  child: Text(
+                    firstLetter,
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: circleAvatarForegroundColor,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    Constant.produitStock,
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: titleColor,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 2,
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 8.0),
+            Constant.getDivider(context),
+            const SizedBox(height: 8),
+            ListView.separated(
+              shrinkWrap: true,
+              physics: NeverScrollableScrollPhysics(),
+              itemCount: produit.stockProduits!.length,
+              itemBuilder: (BuildContext context, int index) {
+                final stockDetail = produit.stockProduits![index];
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    _buildDetailRow(
+                      Constant.storageName,
+                      stockDetail.storageName,
+                    ),
+                    _buildDetailRow(
+                      Constant.storageType,
+                      stockDetail.storageType,
+                    ),
+                    _buildStockRow(
+                      // _buildStockRow also returns a Row
+                      Constant.produitStock,
+                      stockDetail.qtyStock,
+                      rowColor, // This should be currentStockRowColor
+                    ),
+                  ],
+                );
+              },
+              separatorBuilder: (BuildContext context, int index) =>
+                  Constant.getDivider(context),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGrossiste(
+    BuildContext context,
+    Color titleColor,
+    Color rowColor,
+  ) {
+    if (produit.fournisseurProduits == null ||
+        produit.fournisseurProduits!.isEmpty ||
+        produit.fournisseurProduits!.length < 2) {
+      return SizedBox.shrink();
+    }
+    final Color circleAvatarForegroundColor =
+        Constant.getCircleAvatarForegroundColor(context);
+
+    final Color circleAvatarBackgroundColor =
+        Constant.getCircleAvatarBackgroundColor(context);
+    final String firstLetter = Constant.getFirstLetter(Constant.fournisseurs);
+    return Card(
+      elevation: 0.2,
+      shape: Constant.roundedRectangleBorder,
+      // margin: const EdgeInsets.all(4.0), // Uncomment if you want margin
+      child: Padding(
+        padding: const EdgeInsets.all(12.0),
+        // Increased padding for better spacing
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                CircleAvatar(
+                  radius: 20,
+                  backgroundColor: circleAvatarBackgroundColor,
+                  child: Text(
+                    firstLetter,
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: circleAvatarForegroundColor,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    Constant.fournisseurs,
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: titleColor,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 2,
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 8.0),
+            Constant.getDivider(context),
+            const SizedBox(height: 8),
+            ListView.separated(
+              shrinkWrap: true,
+              physics: NeverScrollableScrollPhysics(),
+              itemCount: produit.fournisseurProduits!.length,
+              itemBuilder: (BuildContext context, int index) {
+                final fourDetails = produit.fournisseurProduits![index];
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    _buildDetailRow(
+                      Constant.fournisseur,
+                      fourDetails.fournisseurLibelle,
+                    ),
+                    _buildDetailRow(Constant.cip, fourDetails.codeCip),
+                    _buildDetailRow(
+                      Constant.prixAchat,
+                      Constant.formatNumber(fourDetails.prixAchat),
+                    ),
+                    _buildDetailRow(
+                      Constant.prixVente,
+                      Constant.formatNumber(fourDetails.prixUni),
+                    ),
+                  ],
+                );
+              },
+              separatorBuilder: (BuildContext context, int index) =>
+                  Constant.getDivider(context),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRayons(BuildContext context, Color titleColor, Color rowColor) {
+    if (produit.rayonProduits == null ||
+        produit.rayonProduits!.isEmpty ||
+        produit.rayonProduits!.length < 2) {
+      return SizedBox.shrink();
+    }
+    final String firstLetter = Constant.getFirstLetter(Constant.rayons);
+    final Color circleAvatarForegroundColor =
+        Constant.getCircleAvatarForegroundColor(context);
+    return Card(
+      elevation: 0.2,
+      shape: Constant.roundedRectangleBorder,
+      // margin: const EdgeInsets.all(4.0), // Uncomment if you want margin
+      child: Padding(
+        padding: const EdgeInsets.all(12.0),
+        // Increased padding for better spacing
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                CircleAvatar(
+                  radius: 20,
+                  backgroundColor: Constant.getCircleAvatarBackgroundColor(
+                    context,
+                  ),
+                  child: Text(
+                    firstLetter,
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: circleAvatarForegroundColor,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    Constant.rayons,
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: titleColor,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 2,
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 8.0),
+            Constant.getDivider(context),
+            const SizedBox(height: 8),
+            ListView.separated(
+              shrinkWrap: true,
+              physics: NeverScrollableScrollPhysics(),
+              itemCount: produit.rayonProduits!.length,
+              itemBuilder: (BuildContext context, int index) {
+                final rayonDetails = produit.rayonProduits![index];
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    _buildDetailRow(Constant.rayon, rayonDetails.libelleRayon),
+                    _buildDetailRow(Constant.codeRayon, rayonDetails.codeRayon),
+                    _buildDetailRow(
+                      Constant.storageName,
+                      rayonDetails.libelleStorage,
+                    ),
+                    _buildDetailRow(
+                      Constant.storageType,
+                      rayonDetails.storageType,
+                    ),
+                  ],
+                );
+              },
+              separatorBuilder: (BuildContext context, int index) =>
+                  Constant.getDivider(context),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+ _percentage(List<ListItem> data) {
+    if(data.length==3) {
+      return 33.33;
+    } else if(data.length==2) {
+      return 50.0;
+    } else if(data.length==1) {
+      return 100.0;
+    }
+  }
+  Widget _buildProduitEtatMetterGroup({required BuildContext context}) {
+    final EtatProduit etatProduit = produit.etatProduit;
+    if ((!etatProduit.enCommande &&
+            !etatProduit.enSuggestion &&
+            !etatProduit.entree)) {
+      return SizedBox.shrink();
+    }
+    final List<ListItem> data = [
+      if (etatProduit.enCommande)
+        ListItem(libelle: Constant.inOrder, autre: '33', value: ''),
+      if (etatProduit.enSuggestion)
+        ListItem(libelle: Constant.inSuggestion, autre: '33', value: ''),
+      if (etatProduit.entree)
+        ListItem(libelle: Constant.inStock, autre: '33', value: ''),
+    ];
+    final double poucentageTotal = _percentage(data);
+    String firstLetter = Constant.getFirstLetter(Constant.etatProduit);
+    final Color circleAvatarForegroundColor =
+        Constant.getCircleAvatarForegroundColor(context);
+    final Color circleAvatarBackgroundColor =
+        Constant.getCircleAvatarBackgroundColor(context);
+
+    return Card(
+      margin: const EdgeInsets.all(4.0),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
+      elevation: 0.2,
+      clipBehavior: Clip.antiAlias,
+      child: Padding(
+        padding: const EdgeInsets.all(10.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                CircleAvatar(
+                  radius: 20,
+                  backgroundColor: circleAvatarBackgroundColor,
+                  child: Text(
+                    firstLetter,
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: circleAvatarForegroundColor,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    Constant.etatProduit,
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color:
+                          Theme.of(context).textTheme.titleLarge?.color ??
+                          Theme.of(context).colorScheme.onSurface,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 2,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Divider(
+              height: 1,
+              color: Theme.of(context).dividerColor.withValues(alpha: 0.5),
+            ),
+            const SizedBox(height: 12),
+
+            /// Meter bar
+            Row(
+              children: data
+                  .asMap() // Converts the List to a Map<int, ListItem> (index -> item)
+                  .entries // Gets an Iterable of MapEntry<int, ListItem>
+                  .map((entry) {
+                    int index = entry.key;
+                    ListItem item = entry.value;
+                    Color itemColor =
+                        Constant.pieChartColors[index %
+                            Constant.pieChartColors.length];
+
+                    return Expanded(
+                      flex: (poucentageTotal * 100).toInt(),
+                      child: Container(
+                        height: 8,
+                        color:
+                            itemColor, // Use the color from the list by index
+                      ),
+                    );
+                  })
+                  .toList(),
+            ),
+            const SizedBox(height: 12),
+
+            /// metter list
+            ...data.asMap().entries.map((entry) {
+              int index = entry.key;
+              ListItem item = entry.value;
+              Color itemColor = Constant
+                  .pieChartColors[index % Constant.pieChartColors.length];
+              return Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4.0),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 10,
+                      height: 10,
+                      decoration: BoxDecoration(
+                        color: itemColor,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    const SizedBox(width: 5),
+                    Expanded(
+                      child: RichText(
+                        text: TextSpan(
+                          text: item.libelle,
+                          style: const TextStyle(
+                            color: Colors.black,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }),
+          ],
+        ),
       ),
     );
   }

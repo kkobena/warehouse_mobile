@@ -1,4 +1,4 @@
-import 'package:intl/intl.dart';
+
 import 'package:provider/provider.dart';
 import 'package:warehouse_mobile/src/data/services/dahboard/dashboard_sale_service.dart';
 import 'package:warehouse_mobile/src/models/dashboard.dart';
@@ -74,16 +74,6 @@ class _DashboardPageState extends State<DashboardPage> {
 
   @override
   Widget build(BuildContext context) {
-
-    final Color primaryColor = Theme.of(context).colorScheme.primary;
-
-    final HSLColor hslPrimary = HSLColor.fromColor(primaryColor);
-    double lightnessIncrease = 0.25;
-    final HSLColor hslLighterPrimary = hslPrimary.withLightness(
-      (hslPrimary.lightness + lightnessIncrease).clamp(0.0, 1.0),
-    );
-    final Color lighterPrimaryColor = hslLighterPrimary.toColor();
-
 
     return Scaffold(
       appBar:  CustomAppBar( // Using the shared AppBar

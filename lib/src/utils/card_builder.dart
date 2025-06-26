@@ -9,15 +9,12 @@ Widget buildDataCard({
   VoidCallback? onTap,
   List<ListItem>? resume,
 }) {
-  String firstLetter = title.isNotEmpty ? title[0].toUpperCase() : '?';
-  final Color circleAvatarForegroundColor = Theme.of(
-    context,
-  ).colorScheme.primary;
-  final Color baseColor = Theme.of(context).colorScheme.primaryContainer;
-  final Color circleAvatarBackgroundColor = baseColor.withValues(alpha: 0.3);
-  final Color dividerColor = Theme.of(
-    context,
-  ).dividerColor.withValues(alpha: 0.5);
+  String firstLetter = Constant.getFirstLetter(title);
+  final Color circleAvatarForegroundColor =
+      Constant.getCircleAvatarForegroundColor(context);
+  final Color circleAvatarBackgroundColor =
+      Constant.getCircleAvatarBackgroundColor(context);
+
   final Color titleColor =
       Theme.of(context).textTheme.titleLarge?.color ??
       Theme.of(context).colorScheme.onSurface;
@@ -26,10 +23,7 @@ Widget buildDataCard({
   return Card(
     elevation: 0.2,
     margin: const EdgeInsets.all(4.0),
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(8.0),
-      // side: BorderSide(color: Color(0xFFE9ECEF), width: 0.5),
-    ),
+    shape: Constant.roundedRectangleBorder,
     clipBehavior: Clip.antiAlias,
     // color: Theme.of(context).colorScheme.surface,
     child: InkWell(
@@ -70,7 +64,7 @@ Widget buildDataCard({
               ],
             ),
             const SizedBox(height: 8),
-            Divider(height: 1, color: dividerColor),
+            Constant.getDivider(context),
             const SizedBox(height: 12),
             ...data.asMap().entries.map((entry) {
               int index = entry.key;
@@ -119,9 +113,8 @@ Widget buildDataCard({
 
             //add resume data if provided
             if (resume != null && resume.isNotEmpty) ...[
-
               const SizedBox(height: 10),
-              Divider(height: 1, color: dividerColor),
+              Constant.getDivider(context),
               const SizedBox(height: 10),
               Text(
                 Constant.userResume,
@@ -136,7 +129,8 @@ Widget buildDataCard({
               ...resume.asMap().entries.map((entry) {
                 int index = entry.key; // Index for resume items
                 ListItem item = entry.value;
-                Color itemColor =  Constant.pieChartColors[index % Constant.metterGroupColors.length];
+                Color itemColor = Constant
+                    .pieChartColors[index % Constant.metterGroupColors.length];
                 return Padding(
                   padding: const EdgeInsets.symmetric(vertical: 3.0),
 
@@ -155,10 +149,7 @@ Widget buildDataCard({
                         flex: 2,
                         child: Text(
                           item.libelle,
-                          style: TextStyle(
-                            fontSize: 15,
-                            color: itemTextColor,
-                          ),
+                          style: TextStyle(fontSize: 15, color: itemTextColor),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
