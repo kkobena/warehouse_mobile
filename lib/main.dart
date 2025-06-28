@@ -24,7 +24,6 @@ import 'package:warehouse_mobile/src/utils/date_range_state.dart';
 import 'package:warehouse_mobile/src/utils/profile_page_router.dart';
 import 'package:warehouse_mobile/src/utils/theme_provider.dart';
 
-
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Hive.initFlutter();
@@ -63,7 +62,7 @@ class MyApp extends StatelessWidget {
     final themeProvider = Provider.of<ThemeProvider>(context);
     return MaterialApp(
       title: Constant.appName,
-      theme:themeProvider.currentTheme ,
+      theme: themeProvider.currentTheme,
       locale: const Locale('fr'),
       supportedLocales: const [
         Locale('fr', ''), // French, no country code
@@ -130,7 +129,6 @@ class _MyHomePageState extends State<MyHomePage> {
     ); // listen: false is okay here
     final String? role = authService.currentUserRole;
 
-
     if (role == Constant.profilAdmin) {
       _pages = [DashboardPage(), TvaPage(), BalancePage(), RecapCaissePage()];
       _navBarItems = const [
@@ -166,7 +164,6 @@ class _MyHomePageState extends State<MyHomePage> {
     if (_currentIndex >= _pages.length) {
       _currentIndex = 0;
     }
-
   }
 
   @override
@@ -223,15 +220,12 @@ class _MyHomePageState extends State<MyHomePage> {
                 onTap: (newIndex) {
                   setState(() {
                     _currentIndex = newIndex;
-                    print('Index: $_currentIndex ');
                   });
                 },
-                //  unselectedIconTheme: IconThemeData(color: Colors.grey),
+
                 unselectedIconTheme: IconThemeData(color: Colors.grey[600]),
-                //   selectedItemColor: Colors.green[700],
                 selectedItemColor: Theme.of(context).colorScheme.primary,
                 backgroundColor: Theme.of(context).colorScheme.surface,
-                //  type: BottomNavigationBarType.shifting,
                 items: _navBarItems,
               )
             : null,
@@ -276,22 +270,18 @@ class _MyHomePageState extends State<MyHomePage> {
                       if (navigator.canPop()) {
                         navigator.pop();
                       }
-
                       await authService.logout();
                     },
                   ),
                 ],
         ),
         body: IndexedStack(
-          // Using IndexedStack to preserve state of pages
           index: _currentIndex,
           children: _pages.isNotEmpty
               ? _pages
               : [const Center(child: Text("Loading..."))],
-
-          //  children: _pages,
         ),
-        drawer: AppDrawer(),
+        drawer: role == Constant.profilAdmin ? AppDrawer() : null,
       ),
     );
   }

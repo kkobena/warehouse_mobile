@@ -7,11 +7,11 @@ part of 'tva.dart';
 // **************************************************************************
 
 Tva _$TvaFromJson(Map<String, dynamic> json) => Tva(
-  items: (json['items'] as List<dynamic>)
-      .map((e) => TvaItem.fromJson(e as Map<String, dynamic>))
-      .toList(),
-);
+      items: (json['items'] as List<dynamic>)
+          .map((e) => TvaItem.fromJson(e as Map<String, dynamic>))
+          .toList(),
+    );
 
 Map<String, dynamic> _$TvaToJson(Tva instance) => <String, dynamic>{
-  'items': instance.items,
-};
+      'items': instance.items,
+    };

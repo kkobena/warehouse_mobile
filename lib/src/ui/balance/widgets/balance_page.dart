@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:warehouse_mobile/src/data/services/balance/balance_service.dart';
@@ -21,26 +20,57 @@ class BalancePage extends StatefulWidget {
 }
 
 class _BalancePageState extends State<BalancePage> {
-
-
   @override
   void initState() {
     super.initState();
-
-
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final dateRangeState = Provider.of<DateRangeState>(context, listen: false);
-      _fetchData(dateRangeState.selectedFromDate, dateRangeState.selectedToDate);
+      final dateRangeState = Provider.of<DateRangeState>(
+        context,
+        listen: false,
+      );
+      _fetchData(
+        dateRangeState.selectedFromDate,
+        dateRangeState.selectedToDate,
+      );
+      dateRangeState.addListener(_onDateRangeChanged);
     });
   }
 
-  Future<void> _fetchData(DateTime from,DateTime to) async {
+  @override
+  void dispose() {
+    if (mounted) {
+      // Or check if a Provider reference is held
+      Provider.of<DateRangeState>(
+        context,
+        listen: false,
+      ).removeListener(_onDateRangeChanged);
+    }
+
+    super.dispose();
+  }
+
+  void _onDateRangeChanged() {
+    if (mounted) {
+      // Ensure widget is still in the tree
+      final dateRangeState = Provider.of<DateRangeState>(
+        context,
+        listen: false,
+      );
+      _fetchData(
+        dateRangeState.selectedFromDate,
+        dateRangeState.selectedToDate,
+      );
+    }
+  }
+
+  Future<void> _fetchData(DateTime from, DateTime to) async {
     if (!mounted) return;
     final balanceService = Provider.of<BalanceService>(context, listen: false);
     final String fromDateString = Constant.datePattern.format(from);
     final String toDateString = Constant.datePattern.format(to);
     await balanceService.fetch(fromDateString, toDateString);
   }
+
   void _showDateRangePicker() {
     final dateRangeState = Provider.of<DateRangeState>(context, listen: false);
     showModalBottomSheet(
@@ -55,20 +85,22 @@ class _BalancePageState extends State<BalancePage> {
           firstDate: Constant.firstDate,
           lastDate: Constant.lastDate,
           sheetTitleText: Constant.selectPeriodeText,
-          onDateRangeSelected: (newFromDate, newToDate) {
-
-
-          },
+          onDateRangeSelected: (newFromDate, newToDate) {},
           onApplyAll: () {
             if (!mounted) return;
-            final latestDates = Provider.of<DateRangeState>(context, listen: false);
-            _fetchData(latestDates.selectedFromDate, latestDates.selectedToDate);
+            final latestDates = Provider.of<DateRangeState>(
+              context,
+              listen: false,
+            );
+            _fetchData(
+              latestDates.selectedFromDate,
+              latestDates.selectedToDate,
+            );
           },
         );
       },
     );
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -93,9 +125,8 @@ class _BalancePageState extends State<BalancePage> {
                   service: balanceService,
                   data: balanceService.balance, // Pass the actual data object
                   successBuilder: (BuildContext context, Balance balanceData) {
-
                     return RefreshIndicator(
-                      onRefresh:  () => _fetchData(
+                      onRefresh: () => _fetchData(
                         dateRangeState.selectedFromDate,
                         dateRangeState.selectedToDate,
                       ),
@@ -131,15 +162,12 @@ class _BalancePageState extends State<BalancePage> {
                       ),
                     );
                   },
-
                 );
               },
             ),
           ),
         ],
       ),
-
-
     );
   }
 }

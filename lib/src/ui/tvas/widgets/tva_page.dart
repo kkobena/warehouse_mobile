@@ -26,14 +26,19 @@ class _TvaPageState extends State<TvaPage> {
     return _colorPalette[index % _colorPalette.length];
   }
 
-
   @override
   void initState() {
     super.initState();
-    final dateRangeState = Provider.of<DateRangeState>(context, listen: false);
-
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _fetchData(dateRangeState.selectedFromDate,dateRangeState.selectedToDate);
+      final dateRangeState = Provider.of<DateRangeState>(
+        context,
+        listen: false,
+      );
+      _fetchData(
+        dateRangeState.selectedFromDate,
+        dateRangeState.selectedToDate,
+      );
+      dateRangeState.addListener(_onDateRangeChanged);
     });
   }
 
@@ -83,30 +88,39 @@ class _TvaPageState extends State<TvaPage> {
     }).toList();
   }
 
-  Future<void> _fetchData(DateTime from,DateTime to) async {
+  Future<void> _fetchData(DateTime from, DateTime to) async {
     if (!mounted) return;
     final tvaService = context.read<TvaService>();
     final String fromDateString = Constant.datePattern.format(from);
     final String toDateString = Constant.datePattern.format(to);
     await tvaService.fetch(fromDateString, toDateString);
   }
+
   @override
   void dispose() {
-
-    if (mounted) { // Or check if a Provider reference is held
-      Provider.of<DateRangeState>(context, listen: false).removeListener(_onDateRangeChanged);
+    if (mounted) {
+      Provider.of<DateRangeState>(
+        context,
+        listen: false,
+      ).removeListener(_onDateRangeChanged);
     }
-
     super.dispose();
   }
+
   void _onDateRangeChanged() {
-
-    if (mounted) { // Ensure widget is still in the tree
-      final dateRangeState = Provider.of<DateRangeState>(context, listen: false);
-
-      _fetchData(dateRangeState.selectedFromDate, dateRangeState.selectedToDate);
+    if (mounted) {
+      // Ensure widget is still in the tree
+      final dateRangeState = Provider.of<DateRangeState>(
+        context,
+        listen: false,
+      );
+      _fetchData(
+        dateRangeState.selectedFromDate,
+        dateRangeState.selectedToDate,
+      );
     }
   }
+
   void _showDateRangePicker() {
     final dateRangeState = Provider.of<DateRangeState>(context, listen: false);
     showModalBottomSheet(
@@ -121,13 +135,17 @@ class _TvaPageState extends State<TvaPage> {
           firstDate: Constant.firstDate,
           lastDate: Constant.lastDate,
           sheetTitleText: Constant.selectPeriodeText,
-          onDateRangeSelected: (newFromDate, newToDate) {
-
-          },
+          onDateRangeSelected: (newFromDate, newToDate) {},
           onApplyAll: () {
             if (!mounted) return;
-            final latestDates = Provider.of<DateRangeState>(context, listen: false);
-            _fetchData(latestDates.selectedFromDate, latestDates.selectedToDate);
+            final latestDates = Provider.of<DateRangeState>(
+              context,
+              listen: false,
+            );
+            _fetchData(
+              latestDates.selectedFromDate,
+              latestDates.selectedToDate,
+            );
           },
         );
       },
@@ -144,7 +162,10 @@ class _TvaPageState extends State<TvaPage> {
         fromDate: dateRangeState.selectedFromDate,
         toDate: dateRangeState.selectedToDate,
         onDateRangeTap: _showDateRangePicker,
-        onRefreshTap: ()=>_fetchData(dateRangeState.selectedFromDate, dateRangeState.selectedToDate   ),
+        onRefreshTap: () => _fetchData(
+          dateRangeState.selectedFromDate,
+          dateRangeState.selectedToDate,
+        ),
       ),
       body: Column(
         children: [
@@ -160,7 +181,10 @@ class _TvaPageState extends State<TvaPage> {
                     final pieSections = _generatePieSections(tvaData);
 
                     return RefreshIndicator(
-                      onRefresh: ()=>_fetchData(dateRangeState.selectedFromDate, dateRangeState.selectedToDate   ),
+                      onRefresh: () => _fetchData(
+                        dateRangeState.selectedFromDate,
+                        dateRangeState.selectedToDate,
+                      ),
                       child: LayoutBuilder(
                         // Use LayoutBuilder to get constraints for responsive sizing
                         builder: (context, constraints) {

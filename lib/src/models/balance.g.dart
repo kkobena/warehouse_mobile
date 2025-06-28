@@ -7,11 +7,11 @@ part of 'balance.dart';
 // **************************************************************************
 
 Balance _$BalanceFromJson(Map<String, dynamic> json) => Balance(
-  items: (json['items'] as List<dynamic>)
-      .map((e) => CardData.fromJson(e as Map<String, dynamic>))
-      .toList(),
-);
+      items: (json['items'] as List<dynamic>)
+          .map((e) => CardData.fromJson(e as Map<String, dynamic>))
+          .toList(),
+    );
 
 Map<String, dynamic> _$BalanceToJson(Balance instance) => <String, dynamic>{
-  'items': instance.items,
-};
+      'items': instance.items,
+    };

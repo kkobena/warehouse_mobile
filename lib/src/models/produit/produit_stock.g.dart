@@ -7,12 +7,12 @@ part of 'produit_stock.dart';
 // **************************************************************************
 
 ProduitStock _$ProduitStockFromJson(Map<String, dynamic> json) => ProduitStock(
-  qtyStock: (json['qtyStock'] as num).toInt(),
-  qtyVirtual: (json['qtyVirtual'] as num).toInt(),
-  qtyUG: (json['qtyUG'] as num).toInt(),
-  storageName: json['storageName'] as String,
-  storageType: json['storageType'] as String,
-);
+      qtyStock: (json['qtyStock'] as num).toInt(),
+      qtyVirtual: (json['qtyVirtual'] as num).toInt(),
+      qtyUG: (json['qtyUG'] as num).toInt(),
+      storageName: json['storageName'] as String,
+      storageType: json['storageType'] as String,
+    );
 
 Map<String, dynamic> _$ProduitStockToJson(ProduitStock instance) =>
     <String, dynamic>{

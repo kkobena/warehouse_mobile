@@ -7,15 +7,15 @@ part of 'produit_vendu.dart';
 // **************************************************************************
 
 ProduitVendu _$ProduitVenduFromJson(Map<String, dynamic> json) => ProduitVendu(
-  date: json['date'] as String,
-  quantity: json['quantity'] as String,
-  numero: json['numero'] as String?,
-  unitPrice: json['unitPrice'] as String?,
-  totalAmount: json['totalAmount'] as String?,
-  grossAmount: json['grossAmount'] as String?,
-  totaGrossAmount: json['totaGrossAmount'] as String?,
-  userName: json['userName'] as String?,
-);
+      date: json['date'] as String,
+      quantity: json['quantity'] as String,
+      numero: json['numero'] as String?,
+      unitPrice: json['unitPrice'] as String?,
+      totalAmount: json['totalAmount'] as String?,
+      grossAmount: json['grossAmount'] as String?,
+      totaGrossAmount: json['totaGrossAmount'] as String?,
+      userName: json['userName'] as String?,
+    );
 
 Map<String, dynamic> _$ProduitVenduToJson(ProduitVendu instance) =>
     <String, dynamic>{

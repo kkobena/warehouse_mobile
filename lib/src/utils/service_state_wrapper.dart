@@ -48,8 +48,7 @@ class ServiceStateWrapper<T_SERVICE extends BaseServiceNotifier, T_DATA> extends
       );
     }
 
-    // Check for null or empty data
-    // This part might need adjustment based on how `data` is structured (e.g., if it's a list)
+
     bool isDataConsideredEmpty;
     if (data == null) {
       isDataConsideredEmpty = true;

@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'dart:io';
+
 
 import 'package:flutter/material.dart';
 import 'package:warehouse_mobile/src/data/auth/model/user.dart';
@@ -40,12 +40,7 @@ class AuthService extends ChangeNotifier {
           'username': usernameOrEmail,
           'password': password,
         }),
-      ).timeout(const Duration(seconds: 5),
-          onTimeout: () {
-
-            throw SocketException(
-                "La connexion au serveur a expiré. Veuillez vérifier votre connexion internet et réessayer.");
-          });
+      ).timeout(const Duration(seconds: 5));
 
       if (response.statusCode == 200) {
         final responseData = json.decode(response.body);
@@ -78,19 +73,11 @@ class AuthService extends ChangeNotifier {
           _errorMessage = 'Échec de la connexion';
         }
       }
-    } on SocketException {
-      _isAuthenticated = false;
-      _errorMessage = 'Impossible de se connecter au serveur. Veuillez vérifier votre connexion internet et réessayer.';
-
-    } on http.ClientException {
-
-      _isAuthenticated = false;
-      _errorMessage = 'Erreur de connexion au serveur: Veuillez vérifier votre connexion et l\'URL du serveur.';
-
-    } catch (e) {
+    }  catch (e) {
 
       _isAuthenticated = false;
       _errorMessage = 'Une erreur inattendue s\'est produite';
+      print('Erreur lors de la connexion : $e');
 
     } finally {
       _isLoading = false;

@@ -1,4 +1,4 @@
-import 'package:intl/intl.dart';
+
 import 'package:json_annotation/json_annotation.dart';
 import 'package:warehouse_mobile/src/models/produit/etat_produit.dart';
 import 'package:warehouse_mobile/src/models/produit/produit_fournisseur.dart';
@@ -19,16 +19,12 @@ class Produit {
   final int? qtyReserve;
   final int? tvaTaux;
   final int? regularUnitPrice;
-  final int? grossAmount;
+  final int? costAmount;
   final int? qtyAppro;
   final int? qtySeuilMini;
-
-  //  final List<ProduitCommde>? commdes;
   final List<ProduitFournisseur>? fournisseurProduits;
   final List<ProduitStock>? stockProduits;
   final List<RayonProduit>? rayonProduits;
-
-  //final List<ProduitVendu>? produitVendus;
   final DateTime? lastDateOfSale;
   final DateTime? lastOrderDate;
   final DateTime? lastInventoryDate;
@@ -48,13 +44,11 @@ class Produit {
     this.qtyReserve,
     this.tvaTaux,
     this.regularUnitPrice,
-    this.grossAmount,
+    this.costAmount,
     this.qtyAppro,
     this.qtySeuilMini,
-    // this.commdes,
     this.fournisseurProduits,
     this.stockProduits,
-    // this.produitVendus,
     this.lastDateOfSale,
     this.lastOrderDate,
     this.lastInventoryDate,

@@ -33,11 +33,9 @@ class _RecapCaisseState extends State<RecapCaissePage> {
   }
  @override
  void dispose() {
-
    if (mounted) { // Or check if a Provider reference is held
      Provider.of<DateRangeState>(context, listen: false).removeListener(_onDateRangeChanged);
    }
-
    super.dispose();
  }
 
@@ -50,10 +48,8 @@ class _RecapCaisseState extends State<RecapCaissePage> {
   }
 
  void _onDateRangeChanged() {
-
-   if (mounted) { // Ensure widget is still in the tree
+   if (mounted) {
      final dateRangeState = Provider.of<DateRangeState>(context, listen: false);
-
      _fetchData(dateRangeState.selectedFromDate, dateRangeState.selectedToDate);
    }
  }
@@ -62,26 +58,17 @@ class _RecapCaisseState extends State<RecapCaissePage> {
 
     showModalBottomSheet(
       context: context,
-      isScrollControlled: true, // IMPORTANT!
+      isScrollControlled: true,
       shape: Constant.roundedRectangleBorder,
       builder: (BuildContext bottomSheetContext) {
-        return FilterParamsUtils( // Use the refactored widget
+        return FilterParamsUtils(
           initialFromDate: dateRangeState.selectedFromDate,
           initialToDate: dateRangeState.selectedToDate,
-          firstDate: Constant.firstDate, // Or from page state
-          lastDate: Constant.lastDate,   // Or from page state
+          firstDate: Constant.firstDate,
+          lastDate: Constant.lastDate,
           sheetTitleText: Constant.selectPeriodeOptions,
-          // Provide the callback for when dates are confirmed by the apply button
           onDateRangeSelected: (newFromDate, newToDate) {
-           /* if (!mounted) return;
-            setState(() {
-              _fromDate = newFromDate;
-              _toDate = newToDate;
-            });
-          */
           },
-
-          // Provide the callback for when the main apply button is hit
           onApplyAll: () {
             if (!mounted) return;
             final latestDates = Provider.of<DateRangeState>(context, listen: false);
@@ -89,19 +76,7 @@ class _RecapCaisseState extends State<RecapCaissePage> {
           },
 
           leadingWidgets: [
-            /*Padding(
-              padding: const EdgeInsets.only(bottom: 8.0),
-              child: TextField(
-                controller: _searchTermController,
-                decoration: InputDecoration(
-                  labelText: 'Search Term',
-                  hintText: 'Enter keyword...',
-                  prefixIcon: const Icon(Icons.search_outlined),
-                  border: const OutlineInputBorder(),
-                  contentPadding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 10.0),
-                ),
-              ),
-            ),*/
+
             StatefulBuilder( // To update checkbox within the sheet
               builder: (BuildContext sbfContext, StateSetter sbfSetState) {
                 return CheckboxListTile(
@@ -124,7 +99,7 @@ class _RecapCaisseState extends State<RecapCaissePage> {
               },
             ),
           ],
-          // trailingWidgets: [ Text("Some trailing info here...") ], // Example
+
         );
       },
     );

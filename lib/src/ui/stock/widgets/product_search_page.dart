@@ -41,27 +41,20 @@ class _ProductSearchPageState extends State<ProductSearchPage> {
     VoidCallback onTap,
   ) {
     final Color? itemTextColor = Theme.of(context).textTheme.bodyMedium?.color;
-
-    // Determine row color for the text of the quantity (or the whole row if preferred)
     Color? quantityTextColor = itemTextColor; // Default text color
-    // The commented-out 'rowColor' could be used for the Container's background
-    // Color? rowBackgroundColor = Colors.transparent;
 
     if (produit.totalQuantity != null && produit.totalQuantity! < 0) {
       quantityTextColor = Colors.red[300] ?? Colors.red;
-      // rowBackgroundColor = (Colors.red[300] ?? Colors.red).withOpacity(0.2); // Example background
     } else if (produit.totalQuantity != null &&
         produit.qtySeuilMini != null &&
         produit.totalQuantity! < produit.qtySeuilMini!) {
       quantityTextColor = Colors.orange[300] ?? Colors.orange;
-      // rowBackgroundColor = (Colors.orange[300] ?? Colors.orange).withOpacity(0.2); // Example background
     }
 
     return InkWell(
-      // **** ADD InkWell OR GestureDetector FOR TAPPING ****
-      onTap: onTap, // **** CALL THE PASSED onTap CALLBACK ****
+      onTap: onTap,
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 2.0),
+        padding: const EdgeInsets.symmetric(vertical: 5.0),
         child: Container(
           // color: rowBackgroundColor, // Apply background color here if you want the whole row colored
           padding: const EdgeInsets.all(8.0), // Increased padding a bit
@@ -112,43 +105,6 @@ class _ProductSearchPageState extends State<ProductSearchPage> {
     );
   }
 
-  /*  return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 2.0),
-      child: Container(
-        // Wrap the Row with a Container to set the background color
-      //  color: rowColor,
-        padding: const EdgeInsets.all(4.0),
-        // Optional: Add some padding inside the colored container
-        child: Row(
-          children: [
-            Expanded(
-              flex: 3,
-              child: Text(
-                produit.libelle,
-                style: TextStyle(fontSize: 13, color: itemTextColor),
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-            const SizedBox(width: 5),
-            Expanded(
-              flex: 2,
-              child: Text(
-                produit.codeCip ?? '',
-                // Handle potential null value for codeCip
-                textAlign: TextAlign.end,
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: itemTextColor,
-                ),
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );*/
-
   @override
   Widget build(BuildContext context) {
     final produitService = Provider.of<ProduitService>(context, listen: false);
@@ -163,24 +119,17 @@ class _ProductSearchPageState extends State<ProductSearchPage> {
             Autocomplete<Produit>(
               displayStringForOption: (Produit option) =>
                   '${option.libelle} (${option.codeCip ?? ''})',
-              // Added null check for codeCip
+
               optionsBuilder: (TextEditingValue textEditingValue) async {
                 if (textEditingValue.text.trim().isEmpty) {
                   return const Iterable<Produit>.empty();
                 }
                 final String searchTerm = textEditingValue.text.trim();
-                if (searchTerm.length < 2) {
-                  // Consider reducing min length or make it configurable
+                if (searchTerm.length < Constant.searchTermLenght) {
                   return const Iterable<Produit>.empty();
                 }
-                // It's good practice to show a loading indicator here
-                // For now, it will just wait.
                 await produitService.fetchAll(searchTerm);
                 if (produitService.errorMessage.isNotEmpty) {
-                  // Optionally show the error message to the user (e.g., via a SnackBar)
-                  debugPrint(
-                    "Error fetching produits: ${produitService.errorMessage}",
-                  );
                   return const Iterable<Produit>.empty();
                 }
                 return produitService.items ?? const Iterable<Produit>.empty();
@@ -200,9 +149,6 @@ class _ProductSearchPageState extends State<ProductSearchPage> {
                     FocusNode fieldFocusNode,
                     VoidCallback onFieldSubmitted,
                   ) {
-                    // Important: Use the Autocomplete's provided controller and focus node
-                    // _textEditingController = fieldTextEditingController; // NO! This creates issues.
-                    // _focusNode = fieldFocusNode; // NO!
                     return TextField(
                       controller: fieldTextEditingController, // USE THIS
                       focusNode: fieldFocusNode, // USE THIS
@@ -218,7 +164,6 @@ class _ProductSearchPageState extends State<ProductSearchPage> {
                                   setState(() {
                                     _selectedProduit = null;
                                   });
-                                  // Optionally call onFieldSubmitted or focusNode.unfocus() if needed
                                 },
                               )
                             : null,
@@ -253,9 +198,7 @@ class _ProductSearchPageState extends State<ProductSearchPage> {
                               return _buildProduitSuggestionTile(
                                 context,
                                 option,
-                                () => onSelected(
-                                  option,
-                                ), // **** PASS THE CORRECT onSelected CALLBACK ****
+                                () => onSelected(option),
                               );
                             },
                           ),
@@ -272,7 +215,7 @@ class _ProductSearchPageState extends State<ProductSearchPage> {
                 // Use Expanded here too for consistent layout if needed
                 child: Center(
                   child: Padding(
-                    padding: const EdgeInsets.all(20.0),
+                    padding: const EdgeInsets.all(15.0),
                     child: Text(
                       Constant.produitDetailText,
                       style: Theme.of(context).textTheme.titleMedium,
@@ -295,8 +238,6 @@ class ProduitDetailWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final Color circleAvatarForegroundColor =
-        Constant.getCircleAvatarForegroundColor(context);
     final Color titleColor =
         Theme.of(context).textTheme.titleLarge?.color ??
         Theme.of(context).colorScheme.onSurface;
@@ -334,44 +275,50 @@ class ProduitDetailWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildStockRow(String label, int? stock, Color rowColor) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4.0),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 100,
-            child: Text(label, style: TextStyle(fontWeight: FontWeight.bold)),
-          ),
-          Expanded(
-            child: Text(
-              Constant.formatNumber(stock),
-              textAlign: TextAlign.end,
-              style: TextStyle(fontWeight: FontWeight.bold, color: rowColor),
+  List<Widget> _buildStockRow(String label, int? stock, Color rowColor) {
+    return [
+      Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4.0),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SizedBox(
+              width: 100,
+              child: Text(label, style: TextStyle(fontWeight: FontWeight.bold)),
             ),
-          ),
-        ],
+            Expanded(
+              child: Text(
+                Constant.formatNumber(stock),
+                textAlign: TextAlign.end,
+                style: TextStyle(fontWeight: FontWeight.bold, color: rowColor),
+              ),
+            ),
+          ],
+        ),
       ),
-    );
+      Divider(),
+    ];
   }
 
-  Widget _buildDetailRow(String label, String? value) {
+  List<Widget> _buildDetailRow(String label, String? value) {
     if (value == null || value.isEmpty) {
-      return SizedBox.shrink(); // Return empty widget if value is empty
+      return [SizedBox.shrink()]; // Return empty widget if value is empty
     }
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4.0),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            child: Text(label, style: TextStyle(fontWeight: FontWeight.bold)),
-          ),
-          Expanded(child: Text(value, textAlign: TextAlign.end)),
-        ],
+    return <Widget>[
+      Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4.0),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Text(label, style: TextStyle(fontWeight: FontWeight.bold)),
+            ),
+            Expanded(child: Text(value, textAlign: TextAlign.end)),
+          ],
+        ),
       ),
-    );
+      Divider(),
+    ];
   }
 
   Widget _buildProduitInfo(
@@ -434,57 +381,65 @@ class ProduitDetailWidget extends StatelessWidget {
               ),
               const SizedBox(height: 8),
 
-              _buildDetailRow(Constant.cip, produit.codeCip),
-              _buildStockRow(
+              ..._buildDetailRow(Constant.cip, produit.codeCip),
+              ..._buildStockRow(
                 Constant.qteStockTotal,
                 produit.totalQuantity,
                 rowColor,
               ),
-              _buildDetailRow(
+
+              ..._buildDetailRow(
                 Constant.qteReserve,
                 Constant.formatNumber(produit.qtyReserve),
               ),
-              _buildDetailRow(
+
+              ..._buildDetailRow(
                 Constant.prixAchat,
-                Constant.formatNumber(produit.grossAmount),
+                Constant.formatNumber(produit.costAmount),
               ),
-              _buildDetailRow(
+
+              ..._buildDetailRow(
                 Constant.prixVente,
                 Constant.formatNumber(produit.regularUnitPrice),
               ),
-              _buildDetailRow(
+              ..._buildDetailRow(
                 Constant.qteSeuil,
                 Constant.formatNumber(produit.qtySeuilMini),
               ),
-              _buildDetailRow(
+              ..._buildDetailRow(
                 Constant.qteReap,
                 Constant.formatNumber(produit.qtyAppro),
               ),
-              _buildDetailRow(
+              ..._buildDetailRow(
                 Constant.datePeremption,
                 produit.perimeAtFormatted,
               ),
-              _buildDetailRow(
+              ..._buildDetailRow(
                 Constant.lastDateOfSale,
                 produit.lastDateOfSaleFormatted,
               ),
-              _buildDetailRow(
+              ..._buildDetailRow(
                 Constant.lastOrderDate,
                 produit.lastOrderDateFormatted,
               ),
-              _buildDetailRow(
+              ..._buildDetailRow(
                 Constant.lastInventoryDate,
                 produit.lastInventoryDateFormatted,
               ),
 
-              _buildDetailRow(
+              ..._buildDetailRow(
                 Constant.tvaCode,
                 Constant.formatNumber(produit.tvaTaux),
               ),
 
-              _buildDetailRow("Rayon", produit.rayonLibelle),
-              _buildDetailRow(Constant.laboratoire, produit.laboratoireLibelle),
-              _buildDetailRow(Constant.gamme, produit.gammeLibelle),
+              ..._buildDetailRow("Rayon", produit.rayonLibelle),
+
+              ..._buildDetailRow(
+                Constant.laboratoire,
+                produit.laboratoireLibelle,
+              ),
+
+              ..._buildDetailRow(Constant.gamme, produit.gammeLibelle),
             ],
           ),
         ),
@@ -557,15 +512,17 @@ class ProduitDetailWidget extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: <Widget>[
-                    _buildDetailRow(
+                    ..._buildDetailRow(
                       Constant.storageName,
                       stockDetail.storageName,
                     ),
-                    _buildDetailRow(
+
+                    ..._buildDetailRow(
                       Constant.storageType,
                       stockDetail.storageType,
                     ),
-                    _buildStockRow(
+
+                    ..._buildStockRow(
                       // _buildStockRow also returns a Row
                       Constant.produitStock,
                       stockDetail.qtyStock,
@@ -654,16 +611,16 @@ class ProduitDetailWidget extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: <Widget>[
-                    _buildDetailRow(
+                    ..._buildDetailRow(
                       Constant.fournisseur,
                       fourDetails.fournisseurLibelle,
                     ),
-                    _buildDetailRow(Constant.cip, fourDetails.codeCip),
-                    _buildDetailRow(
+                    ..._buildDetailRow(Constant.cip, fourDetails.codeCip),
+                    ..._buildDetailRow(
                       Constant.prixAchat,
                       Constant.formatNumber(fourDetails.prixAchat),
                     ),
-                    _buildDetailRow(
+                    ..._buildDetailRow(
                       Constant.prixVente,
                       Constant.formatNumber(fourDetails.prixUni),
                     ),
@@ -745,13 +702,19 @@ class ProduitDetailWidget extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: <Widget>[
-                    _buildDetailRow(Constant.rayon, rayonDetails.libelleRayon),
-                    _buildDetailRow(Constant.codeRayon, rayonDetails.codeRayon),
-                    _buildDetailRow(
+                    ..._buildDetailRow(
+                      Constant.rayon,
+                      rayonDetails.libelleRayon,
+                    ),
+                    ..._buildDetailRow(
+                      Constant.codeRayon,
+                      rayonDetails.codeRayon,
+                    ),
+                    ..._buildDetailRow(
                       Constant.storageName,
                       rayonDetails.libelleStorage,
                     ),
-                    _buildDetailRow(
+                    ..._buildDetailRow(
                       Constant.storageType,
                       rayonDetails.storageType,
                     ),
@@ -767,20 +730,22 @@ class ProduitDetailWidget extends StatelessWidget {
     );
   }
 
- _percentage(List<ListItem> data) {
-    if(data.length==3) {
+  double _percentage(List<ListItem> data) {
+    if (data.length == 3) {
       return 33.33;
-    } else if(data.length==2) {
+    } else if (data.length == 2) {
       return 50.0;
-    } else if(data.length==1) {
+    } else if (data.length == 1) {
       return 100.0;
     }
+    return 0.0;
   }
+
   Widget _buildProduitEtatMetterGroup({required BuildContext context}) {
     final EtatProduit etatProduit = produit.etatProduit;
     if ((!etatProduit.enCommande &&
-            !etatProduit.enSuggestion &&
-            !etatProduit.entree)) {
+        !etatProduit.enSuggestion &&
+        !etatProduit.entree)) {
       return SizedBox.shrink();
     }
     final List<ListItem> data = [
@@ -849,26 +814,19 @@ class ProduitDetailWidget extends StatelessWidget {
 
             /// Meter bar
             Row(
-              children: data
-                  .asMap() // Converts the List to a Map<int, ListItem> (index -> item)
-                  .entries // Gets an Iterable of MapEntry<int, ListItem>
-                  .map((entry) {
-                    int index = entry.key;
-                    ListItem item = entry.value;
-                    Color itemColor =
-                        Constant.pieChartColors[index %
-                            Constant.pieChartColors.length];
+              children: data.asMap().entries.map((entry) {
+                int index = entry.key;
+                Color itemColor = Constant
+                    .pieChartColors[index % Constant.pieChartColors.length];
 
-                    return Expanded(
-                      flex: (poucentageTotal * 100).toInt(),
-                      child: Container(
-                        height: 8,
-                        color:
-                            itemColor, // Use the color from the list by index
-                      ),
-                    );
-                  })
-                  .toList(),
+                return Expanded(
+                  flex: (poucentageTotal * 100).toInt(),
+                  child: Container(
+                    height: 8,
+                    color: itemColor, // Use the color from the list by index
+                  ),
+                );
+              }).toList(),
             ),
             const SizedBox(height: 12),
 

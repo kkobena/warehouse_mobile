@@ -15,7 +15,7 @@ class ProfilePageRouter extends StatelessWidget {
       return MyHomePage();
 
     } else {
-      // If not remembered, we can clear the current user
+
       apiClient.clearCredentials();
       return Authenticate();
     }
