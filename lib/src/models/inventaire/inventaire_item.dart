@@ -1,8 +1,10 @@
 import 'package:hive/hive.dart';
+import 'package:json_annotation/json_annotation.dart';
 
 part 'inventaire_item.g.dart';
 
 @HiveType(typeId: 1)
+@JsonSerializable()
 class InventaireItem extends HiveObject {
   @HiveField(0)
   final int id;
@@ -32,6 +34,9 @@ class InventaireItem extends HiveObject {
   final int prixUni;
   @HiveField(13)
   final int produitCip;
+  @HiveField(14)
+  final int rayonId ; // id rayon
+
 
   InventaireItem({
     required this.id,
@@ -48,5 +53,11 @@ class InventaireItem extends HiveObject {
     required this.prixAchat,
     required this.prixUni,
     required this.produitCip,
+    required this.rayonId,
   });
-}
+
+  factory InventaireItem.fromJson(Map<String, dynamic> json) =>
+      _$InventaireItemFromJson(json);
+
+  Map<String, dynamic> toJson() => _$InventaireItemToJson(this);
+} 

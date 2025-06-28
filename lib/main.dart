@@ -8,6 +8,9 @@ import 'package:warehouse_mobile/src/data/services/produit/produit_service.dart'
 import 'package:warehouse_mobile/src/data/services/recap_caisse/recap_caisse_service.dart';
 import 'package:warehouse_mobile/src/data/services/tva/tva_service.dart';
 import 'package:warehouse_mobile/src/data/services/utils/api_client.dart';
+import 'package:warehouse_mobile/src/models/inventaire/inventaire.dart';
+import 'package:warehouse_mobile/src/models/inventaire/inventaire_item.dart';
+import 'package:warehouse_mobile/src/models/inventaire/rayon.dart';
 import 'package:warehouse_mobile/src/ui/auth/authenticate.dart';
 import 'package:warehouse_mobile/src/ui/balance/widgets/balance_page.dart';
 import 'package:flutter/material.dart';
@@ -27,6 +30,9 @@ import 'package:warehouse_mobile/src/utils/theme_provider.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Hive.initFlutter();
+  Hive.registerAdapter(RayonAdapter());
+  Hive.registerAdapter(InventaireAdapter());
+  Hive.registerAdapter(InventaireItemAdapter());
   await Hive.openBox('settings');
   await initializeDateFormatting('fr_FR', null);
 

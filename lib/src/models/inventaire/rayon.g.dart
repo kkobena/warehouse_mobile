@@ -20,6 +20,7 @@ class RayonAdapter extends TypeAdapter<Rayon> {
       id: fields[0] as int,
       code: fields[1] as String,
       libelle: fields[2] as String,
+      inventoryId: fields[5] as int,
       storageId: fields[3] as int?,
       storageLibelle: fields[4] as String?,
     );
@@ -28,7 +29,7 @@ class RayonAdapter extends TypeAdapter<Rayon> {
   @override
   void write(BinaryWriter writer, Rayon obj) {
     writer
-      ..writeByte(5)
+      ..writeByte(6)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -38,7 +39,9 @@ class RayonAdapter extends TypeAdapter<Rayon> {
       ..writeByte(3)
       ..write(obj.storageId)
       ..writeByte(4)
-      ..write(obj.storageLibelle);
+      ..write(obj.storageLibelle)
+      ..writeByte(5)
+      ..write(obj.inventoryId);
   }
 
   @override
@@ -51,3 +54,25 @@ class RayonAdapter extends TypeAdapter<Rayon> {
           runtimeType == other.runtimeType &&
           typeId == other.typeId;
 }
+
+// **************************************************************************
+// JsonSerializableGenerator
+// **************************************************************************
+
+Rayon _$RayonFromJson(Map<String, dynamic> json) => Rayon(
+      id: (json['id'] as num).toInt(),
+      code: json['code'] as String,
+      libelle: json['libelle'] as String,
+      inventoryId: (json['inventoryId'] as num).toInt(),
+      storageId: (json['storageId'] as num?)?.toInt(),
+      storageLibelle: json['storageLibelle'] as String?,
+    );
+
+Map<String, dynamic> _$RayonToJson(Rayon instance) => <String, dynamic>{
+      'id': instance.id,
+      'code': instance.code,
+      'libelle': instance.libelle,
+      'storageId': instance.storageId,
+      'storageLibelle': instance.storageLibelle,
+      'inventoryId': instance.inventoryId,
+    };

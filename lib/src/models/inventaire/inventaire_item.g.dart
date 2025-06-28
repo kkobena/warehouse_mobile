@@ -31,13 +31,14 @@ class InventaireItemAdapter extends TypeAdapter<InventaireItem> {
       prixAchat: fields[11] as int,
       prixUni: fields[12] as int,
       produitCip: fields[13] as int,
+      rayonId: fields[14] as int,
     );
   }
 
   @override
   void write(BinaryWriter writer, InventaireItem obj) {
     writer
-      ..writeByte(14)
+      ..writeByte(15)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -65,7 +66,9 @@ class InventaireItemAdapter extends TypeAdapter<InventaireItem> {
       ..writeByte(12)
       ..write(obj.prixUni)
       ..writeByte(13)
-      ..write(obj.produitCip);
+      ..write(obj.produitCip)
+      ..writeByte(14)
+      ..write(obj.rayonId);
   }
 
   @override
@@ -78,3 +81,46 @@ class InventaireItemAdapter extends TypeAdapter<InventaireItem> {
           runtimeType == other.runtimeType &&
           typeId == other.typeId;
 }
+
+// **************************************************************************
+// JsonSerializableGenerator
+// **************************************************************************
+
+InventaireItem _$InventaireItemFromJson(Map<String, dynamic> json) =>
+    InventaireItem(
+      id: (json['id'] as num).toInt(),
+      quantityOnHand: (json['quantityOnHand'] as num?)?.toInt(),
+      quantityInit: (json['quantityInit'] as num?)?.toInt(),
+      inventoryValueCost: (json['inventoryValueCost'] as num?)?.toInt(),
+      storeInventoryId: (json['storeInventoryId'] as num).toInt(),
+      produitId: (json['produitId'] as num).toInt(),
+      produitLibelle: (json['produitLibelle'] as num).toInt(),
+      inventoryValueTotalCost:
+          (json['inventoryValueTotalCost'] as num?)?.toInt(),
+      inventoryValueAmount: (json['inventoryValueAmount'] as num?)?.toInt(),
+      updated: json['updated'] as bool,
+      gap: (json['gap'] as num?)?.toInt(),
+      prixAchat: (json['prixAchat'] as num).toInt(),
+      prixUni: (json['prixUni'] as num).toInt(),
+      produitCip: (json['produitCip'] as num).toInt(),
+      rayonId: (json['rayonId'] as num).toInt(),
+    );
+
+Map<String, dynamic> _$InventaireItemToJson(InventaireItem instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'quantityOnHand': instance.quantityOnHand,
+      'quantityInit': instance.quantityInit,
+      'inventoryValueCost': instance.inventoryValueCost,
+      'storeInventoryId': instance.storeInventoryId,
+      'produitId': instance.produitId,
+      'produitLibelle': instance.produitLibelle,
+      'inventoryValueTotalCost': instance.inventoryValueTotalCost,
+      'inventoryValueAmount': instance.inventoryValueAmount,
+      'updated': instance.updated,
+      'gap': instance.gap,
+      'prixAchat': instance.prixAchat,
+      'prixUni': instance.prixUni,
+      'produitCip': instance.produitCip,
+      'rayonId': instance.rayonId,
+    };

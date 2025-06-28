@@ -58,6 +58,9 @@ class Constant {
   static const String inSuggestion = 'En suggestion';
   static const String inStock = 'En entrée en stock';
   static const int searchTermLenght = 3;
+  static const String hiveInventaireBox = 'inventaires';
+  static const String hiveRayonBox = 'rayons';
+  static const String hiverayonInventaireItemsBox = 'rayonInventaireItems';
   static DateTime fromDate = DateTime.now();
   static DateTime toDate = DateTime.now();
   static DateTime firstDate = DateTime(2024);

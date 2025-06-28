@@ -64,7 +64,12 @@ class ApiClient {
     }
     return null;
   }
-
+  Map<String, String> get headers {
+    return {
+      'Content-Type': 'application/json; charset=UTF-8',
+      'Authorization': basicAuth
+    };
+  }
   String get basicAuth {
     final username = _username ?? '';
     final password = _password ?? '';
@@ -90,4 +95,6 @@ class ApiClient {
       orElse: () => AppThemes.bleu, // or return null if nullable
     );
   }
+
+
 }
