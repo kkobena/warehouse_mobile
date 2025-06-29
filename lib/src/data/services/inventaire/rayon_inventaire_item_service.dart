@@ -26,10 +26,10 @@ class RayonInventaireItemService extends BaseServiceNotifier {
       rayonInventaireItems != null && rayonInventaireItems!.isNotEmpty;
 
   RayonInventaireItemService() : _sharedService = SharedService() {
-    _initRayonBox();
+    _initBox();
   }
 
-  Future<void> _initRayonBox() async {
+  Future<void> _initBox() async {
     if (!Hive.isBoxOpen(Constant.hiverayonInventaireItemsBox)) {
       await Hive.openBox<InventaireItem>(Constant.hiverayonInventaireItemsBox);
     } else {
@@ -87,11 +87,11 @@ class RayonInventaireItemService extends BaseServiceNotifier {
     }
 
     try {
-      // Convert List<InventaireItem> to List<Map<String, dynamic>>
+
       final List<Map<String, dynamic>> jsonDataList = items.map((item) => item.toJson()).toList();
 
       final http.Response? response = await _sharedService.postListData( // Or a new method in SharedService
-        endpoint: '/mobile/inventaire-items/synchronize', // Replace with your actual sync endpoint
+        endpoint: '/mobile/inventories/items/synchronize', // Replace with your actual sync endpoint
         jsonDataList: jsonDataList,
         setLoading: (loading) => _isLoading = loading,
         setError: (error) => _errorMessage = error,

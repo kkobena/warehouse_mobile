@@ -134,5 +134,7 @@ class Constant {
     }
     return text[0].toUpperCase();
   }
-
+static TextStyle getErrorTextStyle(){
+    return TextStyle(color: Colors.red[300]);
+}
 }

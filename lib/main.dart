@@ -4,10 +4,14 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:warehouse_mobile/src/data/auth/servie/auth_service.dart';
 import 'package:warehouse_mobile/src/data/services/balance/balance_service.dart';
 import 'package:warehouse_mobile/src/data/services/dahboard/dashboard_sale_service.dart';
+import 'package:warehouse_mobile/src/data/services/inventaire/inventaire_service.dart';
+import 'package:warehouse_mobile/src/data/services/inventaire/item_service.dart';
+import 'package:warehouse_mobile/src/data/services/inventaire/rayon_service.dart';
 import 'package:warehouse_mobile/src/data/services/produit/produit_service.dart';
 import 'package:warehouse_mobile/src/data/services/recap_caisse/recap_caisse_service.dart';
 import 'package:warehouse_mobile/src/data/services/tva/tva_service.dart';
 import 'package:warehouse_mobile/src/data/services/utils/api_client.dart';
+import 'package:warehouse_mobile/src/models/inventaire/categorie_inventaire.dart';
 import 'package:warehouse_mobile/src/models/inventaire/inventaire.dart';
 import 'package:warehouse_mobile/src/models/inventaire/inventaire_item.dart';
 import 'package:warehouse_mobile/src/models/inventaire/rayon.dart';
@@ -32,7 +36,11 @@ void main() async {
   await Hive.initFlutter();
   Hive.registerAdapter(RayonAdapter());
   Hive.registerAdapter(InventaireAdapter());
+  Hive.registerAdapter(CategorieInventaireAdapter());
   Hive.registerAdapter(InventaireItemAdapter());
+  await Hive.openBox<Inventaire>(Constant.hiveInventaireBox);
+  await Hive.openBox<InventaireItem>(Constant.hiverayonInventaireItemsBox);
+  await Hive.openBox<Rayon>(Constant.hiveRayonBox);
   await Hive.openBox('settings');
   await initializeDateFormatting('fr_FR', null);
 
@@ -52,6 +60,9 @@ void main() async {
         ChangeNotifierProvider(create: (_) => RecapCaisseService()),
         ChangeNotifierProvider(create: (_) => DateRangeState()),
         ChangeNotifierProvider(create: (_) => ProduitService()),
+        ChangeNotifierProvider(create: (_) => ItemService()),
+        ChangeNotifierProvider(create: (_) => RayonService()),
+        ChangeNotifierProvider(create: (_) => InventaireService()),
         // Add other providers here if needed
       ],
       child: MyApp(),

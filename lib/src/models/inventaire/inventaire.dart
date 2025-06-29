@@ -1,5 +1,6 @@
 import 'package:hive/hive.dart';
 import 'package:json_annotation/json_annotation.dart';
+import 'package:warehouse_mobile/src/models/inventaire/categorie_inventaire.dart';
 
 part 'inventaire.g.dart';
 
@@ -7,7 +8,7 @@ part 'inventaire.g.dart';
 @JsonSerializable()
 class Inventaire extends HiveObject {
   @HiveField(0)
-  final int? id;
+  final int id;
   @HiveField(1)
   final String description;
   @HiveField(2)
@@ -27,10 +28,12 @@ class Inventaire extends HiveObject {
   @HiveField(9)
   final String? inventoryType;
   @HiveField(10)
-  final String? inventoryCategory;
+  final CategorieInventaire? inventoryCategory;
+  @HiveField(11)
+  final DateTime? createdAt;
 
   Inventaire({
-    this.id,
+  required  this.id,
     required this.description,
     this.inventoryValueCostBegin,
     this.inventoryAmountBegin,
@@ -41,6 +44,7 @@ class Inventaire extends HiveObject {
     this.statut,
     this.inventoryType,
     this.inventoryCategory,
+    this.createdAt,
   });
 
   factory Inventaire.fromJson(Map<String, dynamic> json) =>

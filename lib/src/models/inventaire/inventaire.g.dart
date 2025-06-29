@@ -17,7 +17,7 @@ class InventaireAdapter extends TypeAdapter<Inventaire> {
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
     return Inventaire(
-      id: fields[0] as int?,
+      id: fields[0] as int,
       description: fields[1] as String,
       inventoryValueCostBegin: fields[2] as int?,
       inventoryAmountBegin: fields[3] as int?,
@@ -27,14 +27,15 @@ class InventaireAdapter extends TypeAdapter<Inventaire> {
       gapAmount: fields[7] as int?,
       statut: fields[8] as String?,
       inventoryType: fields[9] as String?,
-      inventoryCategory: fields[10] as String?,
+      inventoryCategory: fields[10] as CategorieInventaire?,
+      createdAt: fields[11] as DateTime?,
     );
   }
 
   @override
   void write(BinaryWriter writer, Inventaire obj) {
     writer
-      ..writeByte(11)
+      ..writeByte(12)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -56,7 +57,9 @@ class InventaireAdapter extends TypeAdapter<Inventaire> {
       ..writeByte(9)
       ..write(obj.inventoryType)
       ..writeByte(10)
-      ..write(obj.inventoryCategory);
+      ..write(obj.inventoryCategory)
+      ..writeByte(11)
+      ..write(obj.createdAt);
   }
 
   @override
@@ -75,7 +78,7 @@ class InventaireAdapter extends TypeAdapter<Inventaire> {
 // **************************************************************************
 
 Inventaire _$InventaireFromJson(Map<String, dynamic> json) => Inventaire(
-      id: (json['id'] as num?)?.toInt(),
+      id: (json['id'] as num).toInt(),
       description: json['description'] as String,
       inventoryValueCostBegin:
           (json['inventoryValueCostBegin'] as num?)?.toInt(),
@@ -87,7 +90,13 @@ Inventaire _$InventaireFromJson(Map<String, dynamic> json) => Inventaire(
       gapAmount: (json['gapAmount'] as num?)?.toInt(),
       statut: json['statut'] as String?,
       inventoryType: json['inventoryType'] as String?,
-      inventoryCategory: json['inventoryCategory'] as String?,
+      inventoryCategory: json['inventoryCategory'] == null
+          ? null
+          : CategorieInventaire.fromJson(
+              json['inventoryCategory'] as Map<String, dynamic>),
+      createdAt: json['createdAt'] == null
+          ? null
+          : DateTime.parse(json['createdAt'] as String),
     );
 
 Map<String, dynamic> _$InventaireToJson(Inventaire instance) =>
@@ -103,4 +112,5 @@ Map<String, dynamic> _$InventaireToJson(Inventaire instance) =>
       'statut': instance.statut,
       'inventoryType': instance.inventoryType,
       'inventoryCategory': instance.inventoryCategory,
+      'createdAt': instance.createdAt?.toIso8601String(),
     };

@@ -91,7 +91,7 @@ class _DashboardPageState extends State<DashboardPage> {
             return Center(
               child: Text(
                 service.errorMessage,
-                style: const TextStyle(color: Colors.red),
+                style: Constant.getErrorTextStyle(),
               ),
             );
           }

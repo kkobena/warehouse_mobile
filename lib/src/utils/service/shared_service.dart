@@ -190,6 +190,7 @@ class SharedService {
         }
 
         final decodedBody = json.decode(response.body);
+        print(decodedBody);
         if (decodedBody is List) {
           if (decodedBody.isEmpty) {
             final List<T> emptyList = [];

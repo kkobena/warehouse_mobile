@@ -3,8 +3,8 @@ import 'package:warehouse_mobile/src/data/services/utils/api_client.dart';
 import 'package:warehouse_mobile/src/utils/app_theme.dart';
 
 enum AppThemes {
-  vert, // Corresponds to AppTheme.themeDataVert
-  bleu, // Corresponds to AppTheme.themeBleu
+  vert,
+  bleu,
 }
 
 class ThemeProvider with ChangeNotifier {

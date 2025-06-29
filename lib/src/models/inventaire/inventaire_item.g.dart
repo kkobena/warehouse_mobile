@@ -22,23 +22,25 @@ class InventaireItemAdapter extends TypeAdapter<InventaireItem> {
       quantityInit: fields[2] as int?,
       inventoryValueCost: fields[3] as int?,
       storeInventoryId: fields[4] as int,
-      produitId: fields[5] as int,
-      produitLibelle: fields[6] as int,
+      produitId: fields[5] as int?,
+      produitLibelle: fields[6] as String,
       inventoryValueTotalCost: fields[7] as int?,
       inventoryValueAmount: fields[8] as int?,
-      updated: fields[9] as bool,
+      updated: fields[9] as bool?,
       gap: fields[10] as int?,
-      prixAchat: fields[11] as int,
-      prixUni: fields[12] as int,
-      produitCip: fields[13] as int,
+      prixAchat: fields[11] as int?,
+      prixUni: fields[12] as int?,
+      produitCip: fields[13] as String?,
       rayonId: fields[14] as int,
+      isDirty: fields[15] as bool,
+      produitCips: (fields[16] as List?)?.cast<String>(),
     );
   }
 
   @override
   void write(BinaryWriter writer, InventaireItem obj) {
     writer
-      ..writeByte(15)
+      ..writeByte(17)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -68,7 +70,11 @@ class InventaireItemAdapter extends TypeAdapter<InventaireItem> {
       ..writeByte(13)
       ..write(obj.produitCip)
       ..writeByte(14)
-      ..write(obj.rayonId);
+      ..write(obj.rayonId)
+      ..writeByte(15)
+      ..write(obj.isDirty)
+      ..writeByte(16)
+      ..write(obj.produitCips);
   }
 
   @override
@@ -93,17 +99,21 @@ InventaireItem _$InventaireItemFromJson(Map<String, dynamic> json) =>
       quantityInit: (json['quantityInit'] as num?)?.toInt(),
       inventoryValueCost: (json['inventoryValueCost'] as num?)?.toInt(),
       storeInventoryId: (json['storeInventoryId'] as num).toInt(),
-      produitId: (json['produitId'] as num).toInt(),
-      produitLibelle: (json['produitLibelle'] as num).toInt(),
+      produitId: (json['produitId'] as num?)?.toInt(),
+      produitLibelle: json['produitLibelle'] as String,
       inventoryValueTotalCost:
           (json['inventoryValueTotalCost'] as num?)?.toInt(),
       inventoryValueAmount: (json['inventoryValueAmount'] as num?)?.toInt(),
-      updated: json['updated'] as bool,
+      updated: json['updated'] as bool?,
       gap: (json['gap'] as num?)?.toInt(),
-      prixAchat: (json['prixAchat'] as num).toInt(),
-      prixUni: (json['prixUni'] as num).toInt(),
-      produitCip: (json['produitCip'] as num).toInt(),
+      prixAchat: (json['prixAchat'] as num?)?.toInt(),
+      prixUni: (json['prixUni'] as num?)?.toInt(),
+      produitCip: json['produitCip'] as String?,
       rayonId: (json['rayonId'] as num).toInt(),
+      isDirty: json['isDirty'] as bool? ?? false,
+      produitCips: (json['produitCips'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList(),
     );
 
 Map<String, dynamic> _$InventaireItemToJson(InventaireItem instance) =>
@@ -123,4 +133,6 @@ Map<String, dynamic> _$InventaireItemToJson(InventaireItem instance) =>
       'prixUni': instance.prixUni,
       'produitCip': instance.produitCip,
       'rayonId': instance.rayonId,
+      'isDirty': instance.isDirty,
+      'produitCips': instance.produitCips,
     };
