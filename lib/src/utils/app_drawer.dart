@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:warehouse_mobile/src/data/auth/model/user.dart';
 import 'package:warehouse_mobile/src/data/auth/servie/auth_service.dart';
+import 'package:warehouse_mobile/src/ui/inventory/widgets/inventory_page.dart';
 import 'package:warehouse_mobile/src/ui/stock/widgets/product_search_page.dart';
-import 'package:warehouse_mobile/src/ui/stock/widgets/stock_page.dart';
 import 'package:warehouse_mobile/src/utils/constant.dart';
 import 'package:warehouse_mobile/src/utils/theme_provider.dart';
 
@@ -63,11 +63,13 @@ class AppDrawer extends StatelessWidget {
             ),
             onTap: () {
               Navigator.pop(context); // Close the drawer
-              Navigator.pushNamed(context,ProductSearchPage.routeName); // Navigate to TvaPage
+              Navigator.pushNamed(
+                context,
+                ProductSearchPage.routeName,
+              ); // Navigate to TvaPage
             },
           ),
           const Divider(),
-
 
           ListTile(
             leading: Icon(Icons.inventory, color: drawerIconColor),
@@ -76,8 +78,10 @@ class AppDrawer extends StatelessWidget {
               style: TextStyle(color: drawerTextColor),
             ),
             onTap: () {
-              Navigator.pop(context); // Close the drawer
-           //   Navigator.pushNamed(context,StockPage.routeName); // Navigate to TvaPage
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => InventoryPage()),
+              );
             },
           ),
           const Divider(),
@@ -100,7 +104,7 @@ class AppDrawer extends StatelessWidget {
               color: drawerIconColor,
             ),
             activeColor:
-            theme.colorScheme.primary, // Color of the switch when it's ON
+                theme.colorScheme.primary, // Color of the switch when it's ON
           ),
           const Divider(),
           ListTile(

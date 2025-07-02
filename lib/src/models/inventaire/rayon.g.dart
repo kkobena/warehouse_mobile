@@ -23,13 +23,14 @@ class RayonAdapter extends TypeAdapter<Rayon> {
       inventoryId: fields[5] as int,
       storageId: fields[3] as int?,
       storageLibelle: fields[4] as String?,
+      isSynchronized: fields[6] as bool,
     );
   }
 
   @override
   void write(BinaryWriter writer, Rayon obj) {
     writer
-      ..writeByte(6)
+      ..writeByte(7)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -41,7 +42,9 @@ class RayonAdapter extends TypeAdapter<Rayon> {
       ..writeByte(4)
       ..write(obj.storageLibelle)
       ..writeByte(5)
-      ..write(obj.inventoryId);
+      ..write(obj.inventoryId)
+      ..writeByte(6)
+      ..write(obj.isSynchronized);
   }
 
   @override
@@ -66,6 +69,7 @@ Rayon _$RayonFromJson(Map<String, dynamic> json) => Rayon(
       inventoryId: (json['inventoryId'] as num).toInt(),
       storageId: (json['storageId'] as num?)?.toInt(),
       storageLibelle: json['storageLibelle'] as String?,
+      isSynchronized: json['isSynchronized'] as bool? ?? false,
     );
 
 Map<String, dynamic> _$RayonToJson(Rayon instance) => <String, dynamic>{
@@ -75,4 +79,5 @@ Map<String, dynamic> _$RayonToJson(Rayon instance) => <String, dynamic>{
       'storageId': instance.storageId,
       'storageLibelle': instance.storageLibelle,
       'inventoryId': instance.inventoryId,
+      'isSynchronized': instance.isSynchronized,
     };

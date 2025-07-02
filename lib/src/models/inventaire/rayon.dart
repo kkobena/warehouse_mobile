@@ -18,6 +18,8 @@ class Rayon extends HiveObject {
   final String? storageLibelle;
   @HiveField(5)
   final int inventoryId;
+  @HiveField(6)
+  bool isSynchronized = false;
 
   Rayon({
     required this.id,
@@ -26,6 +28,7 @@ class Rayon extends HiveObject {
     required this.inventoryId,
     this.storageId,
     this.storageLibelle,
+    this.isSynchronized= false,
   });
 
   factory Rayon.fromJson(Map<String, dynamic> json) => _$RayonFromJson(json);

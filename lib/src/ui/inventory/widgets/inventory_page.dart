@@ -8,6 +8,7 @@ import 'package:warehouse_mobile/src/utils/constant.dart';
 import 'package:warehouse_mobile/src/utils/custom_app_bar.dart';
 
 class InventoryPage extends StatefulWidget {
+  static const String routeName = '/inventaire';
   const InventoryPage({super.key});
 
   @override
@@ -46,7 +47,7 @@ class _InventaireSelectionScreenState extends State<InventoryPage> {
   Future<void> _refreshInventaires() async {
     if (mounted) {
       try {
-        await _inventaireService.fetchAll();
+        await _inventaireService.refresh();
       } catch (error) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -67,7 +68,7 @@ class _InventaireSelectionScreenState extends State<InventoryPage> {
     return Scaffold(
       appBar: CustomAppBar(
         titleWidget: const Text('Sélectionner un Inventaire'),
-        onRefreshTap: () => _refreshInventaires,
+        onRefreshTap: _refreshInventaires
       ),
       body: Consumer<InventaireService>(
         builder: (context, inventaireService, child) {
@@ -166,7 +167,10 @@ class _InventaireSelectionScreenState extends State<InventoryPage> {
                             'Date: ${DateFormat('dd/MM/yyyy HH:mm').format(inventaire.createdAt!)}',
                           ),
                         if (inventaire.statut != null)
-                          Text('Statut: ${_getStatus(inventaire.statut)}'),
+                          Text(
+                            'Statut: ${_getStatus(inventaire.statut)}'
+
+                          ),
                       ],
                     ),
                     trailing: const Icon(Icons.arrow_forward_ios, size: 16),
@@ -205,17 +209,26 @@ class _InventaireSelectionScreenState extends State<InventoryPage> {
           );
         },
       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => Provider.of<InventaireService>(
+          context,
+          listen: false,
+        ).cleanHive(),
+        tooltip: 'Supprimer les données locales',
+
+        child: const Icon(Icons.delete_forever),
+      ),
     );
   }
 
   Color _getStatusColor(String? status) {
     switch (status) {
       case 'CREATE':
-        return Colors.green;
+        return Colors.green[300] ?? Colors.green;
       case 'PROCESSING':
-        return Colors.blue;
+        return Colors.blue[300] ?? Colors.blue;
       case 'CLOSED':
-        return Colors.red;
+        return Colors.red[300] ?? Colors.red;
 
       default:
         return Colors.grey;

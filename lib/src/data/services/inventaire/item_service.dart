@@ -1,6 +1,7 @@
 import 'package:hive/hive.dart';
 import 'package:http/http.dart' as http;
 import 'package:warehouse_mobile/src/models/inventaire/inventaire_item.dart';
+import 'package:warehouse_mobile/src/models/inventaire/rayon.dart';
 import 'package:warehouse_mobile/src/utils/constant.dart';
 import 'package:warehouse_mobile/src/utils/service/shared_service.dart';
 import 'package:warehouse_mobile/src/utils/service_state_wrapper.dart';
@@ -10,8 +11,9 @@ class ItemService extends BaseServiceNotifier {
   late Box<InventaireItem> _inventaireItemBox;
   bool _isServiceLoading = false; // Renamed to avoid clash with UI loading
   String _serviceErrorMessage = ''; // Renamed
+  List<Rayon> _rayonsList = []; // In-memory list for UI, kept in sync with Hive
 
-  // This list will hold items for the CURRENT inventory session on a rayon
+
   List<InventaireItem> _currentInventorySessionItems = [];
   int _currentInventoryIndex = 0;
 
@@ -44,11 +46,29 @@ class ItemService extends BaseServiceNotifier {
   bool _isInventoryScreenLoading = false;
 
   bool get isInventoryScreenLoading => _isInventoryScreenLoading;
-
+  List<Rayon> get rayons => _rayonsList;
   ItemService() : _sharedService = SharedService() {
     _initBox();
   }
+  Box<Rayon> get _rayonsBox {
+    return Hive.box<Rayon>(Constant.hiveRayonBox);
+  }
 
+  Future<void> _loadRayonsFromHive() async {
+    _rayonsList = _rayonsBox.values.toList();
+    notifyListeners();
+
+  }
+  List<InventaireItem> getAllItems(int rayonId,int  idInventaire) {
+
+    return _inventaireItemBox.values.toList()
+        .where(
+          (item) =>
+      item.rayonId == rayonId &&
+          item.storeInventoryId == idInventaire,
+    )
+        .toList();
+  }
   Future<void> _initBox() async {
     // Ensure adapter is registered (ideally in main.dart or app startup)
     if (!Hive.isAdapterRegistered(InventaireItemAdapter().typeId)) {
@@ -65,7 +85,15 @@ class ItemService extends BaseServiceNotifier {
       );
     }
   }
+  void markRayonAsSynchronized(int rayonId) async{
+    final rayon = _rayonsBox.get(rayonId);
+    if (rayon != null) {
+      rayon.isSynchronized = true;
+      await rayon.save(); // Save the change back to Hive
 
+      await _loadRayonsFromHive(); // Refresh in-memory list and notify UI
+    }
+  }
   Future<void> prepareInventoryItemsForRayon(
     int idRayon,
     int idInventaire,
@@ -164,7 +192,7 @@ class ItemService extends BaseServiceNotifier {
     }
   }
 
-  /// Updates the quantity for the current item and saves it to Hive.
+
   Future<void> updateCurrentItemQuantity(int? quantity) async {
     if (currentItemToInventory != null) {
       InventaireItem updatedItem = currentItemToInventory!;
@@ -203,6 +231,7 @@ class ItemService extends BaseServiceNotifier {
           (item) => item.rayonId == rayonId,
         ) // Ensure they belong to the rayon
         .toList();
+    print('Synchronizing ${items.length} items for rayon $rayonId');
 
     if (items.isEmpty) {
       _serviceErrorMessage = 'Aucun élément à synchroniser pour ce rayon.';
@@ -240,6 +269,7 @@ class ItemService extends BaseServiceNotifier {
           syncedItem.isDirty = false;
           await _inventaireItemBox.put(syncedItem.id, syncedItem);
         }
+         markRayonAsSynchronized(rayonId); // Mark rayon as synchronized
         _isServiceLoading = false;
         notifyListeners();
         return true;

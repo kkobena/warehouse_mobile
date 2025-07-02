@@ -1,5 +1,7 @@
 import 'package:hive/hive.dart';
 import 'package:warehouse_mobile/src/models/inventaire/inventaire.dart';
+import 'package:warehouse_mobile/src/models/inventaire/inventaire_item.dart';
+import 'package:warehouse_mobile/src/models/inventaire/rayon.dart';
 import 'package:warehouse_mobile/src/utils/constant.dart';
 import 'package:warehouse_mobile/src/utils/service/shared_service.dart';
 import 'package:warehouse_mobile/src/utils/service_state_wrapper.dart';
@@ -22,7 +24,7 @@ class InventaireService extends BaseServiceNotifier {
   @override
   bool get hasData => _inventaires != null && _inventaires!.isNotEmpty;
 
-  InventaireService(): _sharedService = SharedService() {
+  InventaireService() : _sharedService = SharedService() {
     _initInventaireBox();
   }
 
@@ -35,7 +37,11 @@ class InventaireService extends BaseServiceNotifier {
     }
   }
 
-  Future<void> fetchAll() async {
+  Future<void> refresh() async {
+    await _fetch(true);
+  }
+
+  Future<void> _fetch(bool refresh) async {
     _inventaires = await _sharedService.fetchListData<Inventaire>(
       endpoint: '/mobile/inventories',
       itemParserFromJson: (jsonData) => Inventaire.fromJson(jsonData),
@@ -45,8 +51,12 @@ class InventaireService extends BaseServiceNotifier {
       saveListToHive: _saveAllToHive,
       loadListFromHive: _loadFromHive,
       forceRefresh:
-      false, // Set to true if you want to bypass cache for this call
+          refresh, // Set to true if you want to bypass cache for this call
     );
+  }
+
+  Future<void> fetchAll() async {
+    await _fetch(false);
   }
 
   Future<void> saveToHive(Inventaire inventaire) async {
@@ -65,5 +75,17 @@ class InventaireService extends BaseServiceNotifier {
     final loadedData = _inventaireBox.values.toList();
     _inventaires = loadedData;
     return loadedData;
+  }
+
+  Future<void> cleanHive() async {
+    await _inventaireBox.clear();
+    await Hive.box<Rayon>(Constant.hiveRayonBox).clear();
+    _inventaireBox = Hive.box<Inventaire>(Constant.hiveInventaireBox);
+    await Hive.box<InventaireItem>(
+      Constant.hiverayonInventaireItemsBox,
+    ).clear();
+
+    _inventaires = null;
+    notifyListeners();
   }
 }

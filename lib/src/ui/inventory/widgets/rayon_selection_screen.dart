@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:warehouse_mobile/src/data/services/inventaire/rayon_service.dart';
 import 'package:warehouse_mobile/src/models/inventaire/rayon.dart';
 import 'package:warehouse_mobile/src/ui/inventory/widgets/inventory_entry_screen.dart';
+import 'package:warehouse_mobile/src/ui/inventory/widgets/rayon_item_resume.dart';
 import 'package:warehouse_mobile/src/utils/constant.dart';
 import 'package:warehouse_mobile/src/utils/custom_app_bar.dart';
 
@@ -69,16 +70,16 @@ class _RayonSelectionScreenState extends State<RayonSelectionScreen> {
   @override
   Widget build(BuildContext context) {
     // Use Consumer to listen to changes in RayonService
+
     return Scaffold(
       appBar: CustomAppBar(
         titleWidget: const Text('Sélectionner un Rayon'),
-        onRefreshTap: () => _refreshRayons,
+       // onRefreshTap: () => _refreshRayons,
       ),
 
       body: Consumer<RayonService>(
         builder: (context, rayonService, child) {
-          // Update local service instance if it changed (e.g., due to provider recreation)
-          // This is generally not needed if the provider is stable above this widget.
+
           _rayonService = rayonService;
 
           if (rayonService.isLoading && rayonService.rayons == null) {
@@ -139,21 +140,29 @@ class _RayonSelectionScreenState extends State<RayonSelectionScreen> {
               itemCount: rayonService.rayons!.length,
               itemBuilder: (context, index) {
                 final Rayon rayon = rayonService.rayons![index];
+                final bool isSynchronized = rayonService.getRayonById(rayon.id)?.isSynchronized ?? false;
                 return Card(
-                  margin: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 8,
-                  ),
                   elevation: 2,
+                  margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                  // Change card color if synchronized
+                  color: isSynchronized ? Colors.green[100] : null, // Example color
                   child: ListTile(
-                    title: Text(
-                      rayon.libelle,
-                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    title: Text(rayon.libelle),
+                    subtitle: isSynchronized ? const Text("Synchronisé", style: TextStyle(color: Colors.green)) : null,
+                    trailing: Icon(
+                      isSynchronized ? Icons.check_circle : Icons.arrow_forward_ios,
+                      color: isSynchronized ? Colors.green : Colors.grey,
                     ),
-                    subtitle: Text('Code: ${rayon.code}'),
-                    trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                     onTap: () {
-                      if (mounted) {
+                      if (isSynchronized) {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => RayonItemResume(rayon: rayon),
+                          ),
+                        );
+                      } else {
+                        // Navigate to Entry screen if not synchronized
                         Navigator.push(
                           context,
                           MaterialPageRoute(

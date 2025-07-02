@@ -62,4 +62,8 @@ class RayonService extends BaseServiceNotifier {
     _rayons = loadedData;
     return loadedData;
   }
+
+  Rayon ? getRayonById(int rayonId) {
+    return _rayonBox.get(rayonId);
+  }
 }

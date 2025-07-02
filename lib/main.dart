@@ -94,7 +94,7 @@ class MyApp extends StatelessWidget {
         '/': (context) => ProfilePageRouter(), // Default route
         Authenticate.routeName: (context) => const Authenticate(),
         MyHomePage.routeName: (context) => const MyHomePage(),
-        StockPage.routeName: (context) => const StockPage(),
+        InventoryPage.routeName: (context) => const InventoryPage(),
         ProductSearchPage.routeName: (context) => const ProductSearchPage(),
         // Make sure MyHomePage has a routeName static const
         // Add other routes here
